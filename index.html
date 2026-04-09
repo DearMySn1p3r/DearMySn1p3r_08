@@ -2,13 +2,14 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ARCH_SYSTEM_V8_FINAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCH_SYSTEM_MOBILE_APP</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@100;300;500;700&display=swap');
 
         :root {
-            --bg: #030303; 
+            --bg: #050505; 
             --accent: #ffffff;
             --dim: rgba(255, 255, 255, 0.5); 
             --dimmer: rgba(255, 255, 255, 0.15);
@@ -17,444 +18,367 @@
             --card-color: #555555; 
         }
 
-        * { box-sizing: border-box; outline: none; margin: 0; padding: 0; cursor: none !important; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 2px; }
+        * { box-sizing: border-box; outline: none; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; } /* 모바일 스크롤바 숨김 */
 
         body {
             background: var(--bg); color: var(--accent);
             font-family: var(--font); height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column; user-select: none;
+            display: flex; flex-direction: column;
         }
 
-        /* --- 커서 및 배경 --- */
-        #cursor {
-            position: fixed; width: 36px; height: 36px; border: 1px solid var(--sys-main);
-            border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10000;
-            transition: width 0.15s, height 0.15s, background-color 0.15s; box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        }
-        #cursor::before, #cursor::after { content: ''; position: absolute; background: var(--sys-main); }
-        #cursor::before { top: 50%; left: -4px; right: -4px; height: 1px; }
-        #cursor::after { left: 50%; top: -4px; bottom: -4px; width: 1px; }
-        .click-anim { width: 16px !important; height: 16px !important; background-color: rgba(255,255,255,0.4); box-shadow: 0 0 20px var(--accent) !important; }
-
+        /* --- 배경 효과 --- */
         .scanline { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(255, 255, 255, 0.02) 50%); background-size: 100% 4px; pointer-events: none; z-index: 9000; }
-        .noise-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"); z-index: -1; pointer-events: none; }
+        
+        /* --- 헤더 --- */
+        header { 
+            height: 60px; border-bottom: 1px solid var(--dimmer); display: flex; align-items: center; justify-content: center; 
+            background: rgba(10, 10, 10, 0.95); z-index: 500; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .header-logo { height: 24px; width: 24px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.8)); margin-right: 10px; }
+        .header-title { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: 2px; }
 
-        /* --- 레이아웃 --- */
-        header { height: 65px; border-bottom: 1px solid var(--dimmer); display: flex; align-items: center; justify-content: space-between; padding: 0 35px; background: rgba(5, 5, 5, 0.95); z-index: 500; }
-        #main-wrapper { display: grid; grid-template-columns: 460px 1fr; flex: 1; overflow: hidden; gap: 1px; background: rgba(255, 255, 255, 0.05); }
-        .panel { background: rgba(10, 10, 10, 0.95); padding: 35px; position: relative; display: flex; flex-direction: column; overflow-y: auto; }
-
-        /* --- 탭 UI --- */
-        .tab-container { display: flex; gap: 8px; margin-bottom: 30px; border-bottom: 1px solid var(--dimmer); padding-bottom: 12px; }
-        .tab-btn { flex: 1; padding: 8px 0; background: transparent; color: var(--dim); border: none; border-bottom: 2px solid transparent; font-family: var(--font); font-weight: 700; letter-spacing: 1px; font-size: 11px; transition: 0.3s; text-align: center; }
+        /* --- 탭 내비게이션 --- */
+        .tab-nav { 
+            display: flex; background: #0a0a0a; border-bottom: 1px solid var(--dimmer); flex-shrink: 0;
+            overflow-x: auto; white-space: nowrap; padding: 0 10px;
+        }
+        .tab-btn { 
+            flex: 1; min-width: 80px; padding: 15px 5px; background: transparent; color: var(--dim); border: none; 
+            border-bottom: 2px solid transparent; font-family: var(--font); font-weight: 700; letter-spacing: 1px; 
+            font-size: 11px; transition: 0.3s; text-align: center; cursor: pointer;
+        }
         .tab-btn.active { color: #fff; border-bottom-color: var(--sys-main); text-shadow: 0 0 8px rgba(255,255,255,0.4); }
-        .tab-btn:hover { color: #fff; }
-        .tab-content { display: none; flex-direction: column; flex: 1; }
-        .tab-content.active { display: flex; }
+
+        /* --- 메인 콘텐츠 스크롤 영역 --- */
+        .main-content {
+            flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-pane { display: none; flex-direction: column; padding: 25px 20px; padding-bottom: 50px; }
+        .tab-pane.active { display: flex; }
 
         /* --- 폼 UI --- */
-        .input-group { margin-bottom: 18px; }
-        .input-label { font-size: 10px; color: var(--dim); letter-spacing: 1.5px; margin-bottom: 8px; display: block; font-weight: 500; }
-        input[type="text"], select, input[type="file"] { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--dimmer); color: #fff; padding: 12px 15px; font-family: inherit; font-size: 12px; transition: 0.2s; border-radius: 4px; }
-        input[type="text"]:focus, select:focus { border-color: var(--sys-main); box-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
-        input[type="file"] { padding: 9px; cursor: pointer !important; }
+        .section-title { font-size: 14px; font-weight:900; border-bottom:1px solid var(--dimmer); padding-bottom:10px; margin-bottom:20px; letter-spacing: 2px; color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+        .input-group { margin-bottom: 15px; width: 100%; }
+        .input-label { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-bottom: 6px; display: block; font-weight: 500; }
+        input[type="text"], select { width: 100%; background: rgba(0,0,0,0.6); border: 1px solid var(--dimmer); color: #fff; padding: 12px; font-family: inherit; font-size: 13px; border-radius: 6px; -webkit-appearance: none; }
+        input[type="file"] { width: 100%; font-size: 11px; color: var(--dim); }
         
-        .flex-row { display: flex; gap: 12px; }
+        .flex-row { display: flex; gap: 10px; width: 100%; }
         .flex-row > div { flex: 1; }
 
-        button.action-btn { width: 100%; padding: 16px; background: rgba(255,255,255,0.05); color: var(--sys-main); border: 1px solid var(--dimmer); font-weight: 700; letter-spacing: 2px; transition: 0.3s; margin-top: 10px; font-size: 11px; border-radius: 4px; }
-        button.action-btn:hover { background: var(--sys-main); color: #000; box-shadow: 0 0 15px rgba(255,255,255,0.5); border-color: var(--sys-main); }
-        button.primary-btn { background: rgba(255,255,255,0.1); border-color: var(--sys-main); }
+        button.action-btn { width: 100%; padding: 16px; background: rgba(255,255,255,0.05); color: var(--sys-main); border: 1px solid var(--dimmer); font-weight: 700; letter-spacing: 2px; transition: 0.2s; margin-top: 10px; font-size: 12px; border-radius: 6px; }
+        button.action-btn:active { background: var(--sys-main); color: #000; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+        button.primary-btn { background: rgba(255,255,255,0.15); border-color: var(--sys-main); box-shadow: 0 0 10px rgba(255,255,255,0.1); }
 
-        #terminal, #ooc-output { background: #050505; border: 1px solid var(--dimmer); color: #999; padding: 20px; font-size: 11px; line-height: 1.7; margin-top: 20px; overflow-y: auto; flex-shrink: 0; border-radius: 4px; }
-        #terminal { height: 150px; font-family: monospace; }
+        #terminal, #ooc-output { background: #000; border: 1px solid var(--dimmer); color: #999; padding: 15px; font-size: 11px; line-height: 1.6; margin-top: 15px; border-radius: 6px; word-break: break-all;}
+        #terminal { height: 120px; font-family: monospace; overflow-y: auto;}
         .terminal-highlight { color: #fff; font-weight: bold; text-shadow: 0 0 5px #fff; }
-        #ooc-output { font-family: 'Noto Sans KR', monospace; font-size: 12px; min-height: 250px; white-space: pre-wrap; word-break: keep-all; user-select: text; border-left: 3px solid var(--sys-main); color: #ddd;}
+        #ooc-output { font-family: 'Noto Sans KR', monospace; min-height: 200px; white-space: pre-wrap; border-left: 3px solid var(--sys-main); color: #ddd; user-select: auto;}
 
-        /* --- RIGHT PANEL VIEWS --- */
-        #right-id-view { display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); position: relative; flex: 1; height: 100%; padding: 40px; perspective: 1000px; }
-        #right-resonance-view { display: none; flex: 1; position: relative; background: radial-gradient(circle at center, #111 0%, #000 100%); overflow: hidden; height: 100%; }
-        
-        canvas { display: block; width: 100%; height: 100%; }
-        .overlay-info { position: absolute; top: 35px; left: 45px; pointer-events: none; }
-        .info-value { font-size: 28px; font-weight: 900; font-family: monospace; letter-spacing: 2px; }
-
-        /* --- 3D FLIP CARD DESIGN (실제 카드 비율 340x540) --- */
-        .card-scene {
-            width: 340px; 
-            height: 540px; 
-            perspective: 1200px;
-            z-index: 10;
-        }
-        
-        .card-flipper {
-            width: 100%; 
-            height: 100%;
-            position: relative;
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform-style: preserve-3d;
-        }
-
-        .card-flipper.is-flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card-face {
-            position: absolute;
-            width: 100%; 
-            height: 100%;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            border-radius: 12px;
-        }
-
+        /* --- 3D ID CARD (모바일 스케일 조정) --- */
+        .card-view-area { display: flex; flex-direction: column; align-items: center; margin-top: 30px; padding-top: 30px; border-top: 1px dashed var(--dimmer); }
+        .card-scene { width: 320px; height: 508px; perspective: 1200px; z-index: 10; margin-bottom: 20px;} /* CR80 비율 축소 */
+        .card-flipper { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
+        .card-flipper.is-flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 12px; }
         .card-front { transform: rotateY(0deg); }
         .card-back { transform: rotateY(180deg); }
 
-        .id-card-wrapper { 
-            width: 100%; height: 100%; padding: 2px; 
-            background: linear-gradient(135deg, #eee, #fff, #ccc); 
-            border-radius: 12px; position: relative; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px var(--card-color); 
-        }
+        .id-card-wrapper { width: 100%; height: 100%; padding: 2px; background: linear-gradient(135deg, #eee, #fff, #ccc); border-radius: 12px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px var(--card-color); }
+        .id-card-inner { width: 100%; height: 100%; background: #ffffff; border-radius: 10px; padding: 25px 20px; display: flex; flex-direction: column; position: relative; overflow: hidden; color: #111; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
         
-        .id-card-inner { 
-            width: 100%; height: 100%; background: #ffffff;
-            border-radius: 10px; padding: 35px 30px; display: flex; flex-direction: column; position: relative; overflow: hidden; color: #111; 
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
-        }
-        
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; z-index: 1; border-bottom: 2px solid #ddd; padding-bottom: 12px; margin-bottom: 25px; }
-        .card-title { font-size: 24px; font-weight: 900; letter-spacing: 4px; color: #000; }
-        .card-subtitle { font-size: 7px; color: #555; letter-spacing: 1.5px; margin-top: 4px; font-weight: 700; }
-        .card-logo { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; z-index: 2; overflow: hidden;}
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; z-index: 1; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; }
+        .card-title { font-size: 22px; font-weight: 900; letter-spacing: 3px; color: #000; }
+        .card-subtitle { font-size: 6px; color: #555; letter-spacing: 1px; margin-top: 4px; font-weight: 700; }
+        .card-logo { width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; z-index: 2; overflow: hidden;}
         .card-logo img { width: 100%; height: 100%; object-fit: contain; }
 
-        /* 증명사진 영역 (이동 및 확대 인터랙션) */
+        /* 증명사진 (모바일 터치 이동) */
         .card-photo-area { 
-            width: 130px; height: 173px; margin: 0 auto 25px auto;
+            width: 110px; height: 146px; margin: 0 auto 20px auto;
             background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 4px;
             display: flex; align-items: center; justify-content: center; position: relative; z-index: 10; 
-            background-repeat: no-repeat;
-            box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
-            overflow: hidden; cursor: grab !important;
+            background-repeat: no-repeat; box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden; touch-action: none; /* 터치 스크롤 방지 */
         }
-        .card-photo-area:active { cursor: grabbing !important; }
-        .photo-placeholder { font-size: 35px; color: #bbb; pointer-events: none; }
+        .photo-placeholder { font-size: 30px; color: #bbb; pointer-events: none; }
 
-        .card-data-row { display: flex; flex-direction: column; margin-bottom: 12px; z-index: 1; }
-        .data-label { font-size: 8px; color: #888; letter-spacing: 1px; font-weight: 700; }
-        .data-value { font-size: 15px; color: #000; font-weight: 900; letter-spacing: 1px; margin-top: 3px; }
-        .data-value.highlight { color: var(--card-color); text-shadow: 0 0 1px rgba(0,0,0,0.1); }
+        .card-data-row { display: flex; flex-direction: column; margin-bottom: 10px; z-index: 1; }
+        .data-label { font-size: 7px; color: #888; letter-spacing: 1px; font-weight: 700; }
+        .data-value { font-size: 14px; color: #000; font-weight: 900; letter-spacing: 1px; margin-top: 2px; }
+        .data-value.highlight { color: var(--card-color); }
 
         .card-footer { margin-top: auto; z-index: 1; display: flex; flex-direction: column; gap: 5px;}
-        .footer-top { display: flex; justify-content: space-between; align-items: flex-end; }
         .barcode-container { text-align: right; overflow: hidden; }
-        .barcode { font-family: 'Libre Barcode 39', monospace; font-size: 42px; color: #000; margin-right: -10px; opacity: 0.8;}
+        .barcode { font-family: 'Libre Barcode 39', monospace; font-size: 36px; color: #000; margin-right: -10px; opacity: 0.8;}
         
-        /* 뒷면 디자인 (마그네틱 등) */
-        .mag-stripe { width: calc(100% + 60px); height: 45px; background: #1a1a1a; margin-left: -30px; margin-top: 15px; margin-bottom: 25px; z-index: 1; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.5);}
-        .back-terms { font-size: 8px; color: #555; line-height: 1.7; text-align: justify; z-index: 1; font-family: 'Noto Sans KR', sans-serif;}
-        .sign-area { border-bottom: 1px solid #000; height: 35px; margin-top: 30px; z-index: 1;}
+        .mag-stripe { width: calc(100% + 40px); height: 40px; background: #1a1a1a; margin-left: -20px; margin-top: 10px; margin-bottom: 20px; z-index: 1; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.5);}
+        .back-terms { font-size: 7.5px; color: #555; line-height: 1.6; text-align: justify; z-index: 1; font-family: 'Noto Sans KR', sans-serif;}
+        .sign-area { border-bottom: 1px solid #000; height: 30px; margin-top: 25px; z-index: 1;}
 
-        .card-controls { display: flex; gap: 15px; margin-top: 40px; z-index: 100; }
-        .download-btn-float { padding: 12px 25px; font-size: 10px; background: rgba(0,0,0,0.6); border: 1px solid var(--dim); color: var(--accent); font-weight: 700; letter-spacing: 2px; border-radius: 4px; transition: 0.3s; }
-        .download-btn-float:hover { background: var(--sys-main); color: #000; border-color: var(--sys-main); }
+        /* --- 공명 시각화 캔버스 --- */
+        .resonance-canvas-wrapper { width: 100%; height: 250px; background: #000; border-radius: 8px; border: 1px solid var(--dimmer); overflow: hidden; position: relative; margin-bottom: 20px; box-shadow: inset 0 0 30px rgba(0,0,0,1); }
+        #coreCanvas { display: block; width: 100%; height: 100%; }
+        .sync-overlay { position: absolute; top: 15px; left: 15px; pointer-events: none; }
+        .sync-val { font-size: 22px; font-weight: 900; font-family: monospace; letter-spacing: 1px; }
 
-        /* --- 부팅 및 알림 --- */
-        #system-notif { position: fixed; top: 30px; right: 30px; width: 350px; background: #fff; color: #000; padding: 15px 20px; font-weight: 900; display: none; z-index: 11000; letter-spacing: 1px; font-size: 11px; border-left: 5px solid var(--card-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        
+        /* 슬라이더 컨트롤 */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; padding: 0; border: none; height: 20px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.8); margin-top: -6px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #333; border-radius: 2px; }
+
+        /* --- 적성 검사 --- */
+        .q-text { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 20px; line-height: 1.5; word-break: keep-all; }
+        .a-btn { width: 100%; text-align: left; padding: 15px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--dimmer); border-left: 3px solid var(--dim); color: #ccc; margin-bottom: 10px; font-family: var(--font); font-size: 12px; border-radius: 4px; line-height: 1.4; word-break: keep-all;}
+        .a-btn:active { background: rgba(255,255,255,0.1); border-color: var(--sys-main); border-left-color: var(--sys-main); color: #fff; }
+
+        /* --- 알림 시스템 --- */
+        #system-notif { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 350px; background: #fff; color: #000; padding: 12px 15px; font-weight: 900; display: none; z-index: 11000; letter-spacing: 1px; font-size: 10px; border-radius: 4px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); text-align: center; }
+        @keyframes fadeInOut { 0% { opacity: 0; top: 0px; } 15% { opacity: 1; top: 20px; } 85% { opacity: 1; top: 20px; } 100% { opacity: 0; top: 0px; } }
+
+        /* --- 부팅 --- */
         #boot-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 20000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .loading-text { font-size: 16px; letter-spacing: 10px; color: #fff; font-weight: 700; margin-bottom: 25px; animation: textGlitch 0.1s infinite; }
-        .loading-bar { width: 300px; height: 2px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; border-radius: 1px;}
-        .loading-fill { height: 100%; background: #fff; width: 0%; box-shadow: 0 0 15px #fff; animation: fillBar 1.5s forwards ease-out; }
+        .loading-text { font-size: 14px; letter-spacing: 6px; color: #fff; font-weight: 700; margin-bottom: 20px; text-align: center;}
+        .loading-bar { width: 80%; max-width: 300px; height: 2px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; border-radius: 1px;}
+        .loading-fill { height: 100%; background: #fff; width: 0%; box-shadow: 0 0 10px #fff; animation: fillBar 1.2s forwards ease-out; }
         @keyframes fillBar { 0% { width: 0%; } 100% { width: 100%; } }
-        @keyframes textGlitch { 0% { transform: translate(0) } 20% { transform: translate(-1px, 1px) } 40% { transform: translate(-1px, -1px) } 60% { transform: translate(1px, 1px) } 80% { transform: translate(1px, -1px) } 100% { transform: translate(0) } }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div id="cursor"></div>
 <div id="boot-screen">
-    <div class="loading-text">ARCH_SYSTEM_INITIALIZING</div>
+    <div class="loading-text">ARCH_SYSTEM<br>MOBILE_SYNC</div>
     <div class="loading-bar"><div class="loading-fill"></div></div>
 </div>
 <div id="system-notif">>> SYSTEM_MESSAGE</div>
-<div class="scanline"></div><div class="noise-bg"></div>
+<div class="scanline"></div>
 
 <header>
-    <div style="display:flex; align-items:center; gap:20px;">
-        <img src="「ARCH」 Symbol Logo White Ver.png" alt="" onerror="this.style.display='none';" style="height: 30px; width: 30px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));">
-        <span style="font-size: 20px; font-weight: 900; color: #fff; letter-spacing: 3px;">ARCH</span>
-        <span style="font-weight:500; letter-spacing:4px; font-size:10px; color:var(--dim);">| COMMAND_CENTER</span>
-    </div>
-    <div style="text-align:right; font-size:10px; color:var(--dim); line-height:1.5; font-family:monospace;">
-        SYSTEM: <span style="color:#fff;">ONLINE</span><br>
-        <span id="clock" style="color:#fff;">00:00:00</span>
-    </div>
+    <img src="「ARCH」 Symbol Logo White Ver.png" alt="" class="header-logo" onerror="this.style.display='none';">
+    <span class="header-title">ARCH</span>
 </header>
 
-<div id="main-wrapper">
-    <div class="panel">
-        <div class="tab-container">
-            <button class="tab-btn active" onclick="switchTab('tab-id', this)">ID_CARD</button>
-            <button class="tab-btn" onclick="switchTab('tab-mission', this)">MISSION</button>
-            <button class="tab-btn" onclick="switchTab('tab-test', this)">APTITUDE</button>
-            <button class="tab-btn" onclick="switchTab('tab-resonance', this)">RESONANCE</button>
+<div class="tab-nav-wrapper">
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('tab-id', this)">ID_CARD</button>
+        <button class="tab-btn" onclick="switchTab('tab-mission', this)">MISSION</button>
+        <button class="tab-btn" onclick="switchTab('tab-test', this)">APTITUDE</button>
+        <button class="tab-btn" onclick="switchTab('tab-resonance', this)">RESONANCE</button>
+    </div>
+</div>
+
+<div class="main-content">
+    
+    <div id="tab-id" class="tab-pane active">
+        <div class="section-title">OPERATOR_DATA</div>
+        
+        <div class="input-group">
+            <span class="input-label">PHOTO UPLOAD</span>
+            <input type="file" id="agent-photo" accept="image/*" onchange="previewPhoto(event)">
         </div>
-
-        <div id="tab-id" class="tab-content active">
+        <div class="input-group">
+            <span class="input-label">PHOTO ZOOM (사진 크기 조절)</span>
+            <input type="range" id="photo-zoom" min="20" max="300" value="100">
+        </div>
+        <div class="input-group">
+            <span class="input-label">CODENAME / NAME</span>
+            <input type="text" id="agent-name" placeholder="이름을 입력하세요" autocomplete="off">
+        </div>
+        
+        <div class="flex-row">
             <div class="input-group">
-                <span class="input-label">PHOTO UPLOAD (증명사진 업로드)</span>
-                <input type="file" id="agent-photo" accept="image/*" onchange="previewPhoto(event)">
-                <span style="font-size:9px; color:var(--dim); margin-top:5px; display:block;">* 마우스 드래그로 이동, 휠 스크롤로 확대/축소 가능</span>
+                <span class="input-label">ROLE</span>
+                <select id="agent-role"><option value="SENTINEL">센티넬</option><option value="GUIDE">가이드</option></select>
             </div>
             <div class="input-group">
-                <span class="input-label">CODENAME / NAME (이름)</span>
-                <input type="text" id="agent-name" placeholder="요원명을 입력하세요" autocomplete="off">
-            </div>
-            
-            <div class="flex-row">
-                <div class="input-group">
-                    <span class="input-label">ROLE (직군)</span>
-                    <select id="agent-role">
-                        <option value="SENTINEL">센티넬</option>
-                        <option value="GUIDE">가이드</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <span class="input-label">RANK (직급)</span>
-                    <select id="agent-rank">
-                        <option value="RANDOM">시스템 랜덤 배정</option>
-                        <option value="SS-CLASS">SS-CLASS (군주/예외)</option>
-                        <option value="S-CLASS">S-CLASS (최상위)</option>
-                        <option value="A-CLASS">A-CLASS (에이전트)</option>
-                        <option value="B-CLASS">B-CLASS (에이전트)</option>
-                        <option value="C-CLASS">C-CLASS (신입)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <span class="input-label">CORE ATTRIBUTE (속성)</span>
-                <select id="agent-attr">
-                    <option value="RANDOM">시스템 랜덤 배정</option>
-                    <option value="불">불 (PYRE)</option>
-                    <option value="물">물 (AQUA)</option>
-                    <option value="풀">풀 (VERDE)</option>
-                    <option value="번개">번개 (FULMEN)</option>
-                    <option value="바람">바람 (AERO)</option>
-                    <option value="얼음">얼음 (GLACIES)</option>
-                    <option value="무속성">무속성 (NONE)</option>
+                <span class="input-label">RANK</span>
+                <select id="agent-rank">
+                    <option value="RANDOM">랜덤</option>
+                    <option value="SS-CLASS">SS-CLASS</option>
+                    <option value="S-CLASS">S-CLASS</option>
+                    <option value="A-CLASS">A-CLASS</option>
+                    <option value="B-CLASS">B-CLASS</option>
+                    <option value="C-CLASS">C-CLASS</option>
                 </select>
             </div>
-            
-            <div class="flex-row">
-                <button class="action-btn primary-btn" onclick="startScanning(false)" id="btn-generate">MANUAL_GENERATE</button>
-                <button class="action-btn" onclick="startScanning(true)">RANDOM_GENERATE</button>
-            </div>
-            
-            <div id="terminal">>> SYSTEM_READY.<br>>> AWAITING_NEW_OPERATOR_DATA...<br></div>
         </div>
 
-        <div id="tab-mission" class="tab-content">
-            <div style="display: flex; gap:12px;">
-                <div class="input-group" style="flex:1;">
-                    <span class="input-label">TARGET OPERATOR</span>
-                    <input type="text" id="m-agent-name" placeholder="메인 요원">
-                </div>
-                <div class="input-group" style="flex:1;">
-                    <span class="input-label">PARTNER OPERATOR</span>
-                    <input type="text" id="m-partner-name" placeholder="파트너 요원">
-                </div>
-            </div>
-            <div style="display: flex; gap:12px;">
-                <div class="input-group" style="flex:1;">
-                    <span class="input-label">ROLE (역할)</span>
-                    <select id="m-agent-role">
-                        <option value="센티넬">센티넬</option>
-                        <option value="가이드">가이드</option>
-                    </select>
-                </div>
-                <div class="input-group" style="flex:1;">
-                    <span class="input-label">ATTRIBUTE (속성)</span>
-                    <select id="m-agent-attr">
-                        <option value="RANDOM">랜덤</option>
-                        <option value="불">불</option><option value="물">물</option>
-                        <option value="풀">풀</option><option value="번개">번개</option>
-                        <option value="바람">바람</option><option value="얼음">얼음</option>
-                        <option value="무속성">무속성</option>
-                    </select>
-                </div>
-            </div>
-            <button class="action-btn primary-btn" onclick="generateMission()">REQUEST_MISSION</button>
-            <button class="action-btn" onclick="copyOOC()" id="btn-copy">[ COPY_OOC_TEXT ]</button>
-            <div id="ooc-output">>> 대기 중... 요원 정보를 입력하고 임무를 요청하십시오.</div>
+        <div class="input-group">
+            <span class="input-label">CORE ATTRIBUTE</span>
+            <select id="agent-attr">
+                <option value="RANDOM">랜덤 배정</option>
+                <option value="불">불 (PYRE)</option><option value="물">물 (AQUA)</option>
+                <option value="풀">풀 (VERDE)</option><option value="번개">번개 (FULMEN)</option>
+                <option value="바람">바람 (AERO)</option><option value="얼음">얼음 (GLACIES)</option>
+                <option value="무속성">무속성 (NONE)</option>
+            </select>
         </div>
-
-        <div id="tab-test" class="tab-content">
-            <div id="test-intro">
-                <div style="font-size:15px; font-weight:900; color:#fff; letter-spacing:2px; margin-bottom:15px; border-bottom:1px solid var(--dimmer); padding-bottom:10px;">APTITUDE EVALUATION</div>
-                <p style="font-size:11px; color:#aaa; line-height:1.7; word-break:keep-all;">가장 본능적으로 끌리는 선택지를 고르십시오.</p>
-                <button class="action-btn primary-btn" onclick="startTest()">BEGIN_EVALUATION</button>
-            </div>
-            <div id="test-qna" style="display:none;">
-                <div class="test-progress" id="q-progress">QUESTION 1 / 5</div>
-                <div class="q-text" id="q-text">질문 텍스트</div>
-                <div id="a-buttons" style="display:flex; flex-direction:column;"></div>
-            </div>
-            <div id="test-result" style="display:none;">
-                <div id="capture-test" style="background:#0a0a0a; border:1px solid var(--dimmer); padding:30px; text-align:center; margin-bottom:15px; border-radius:4px;">
-                    <div style="font-size:16px; font-weight:900; color:#fff; border-bottom:1px solid var(--dimmer); padding-bottom:10px; margin-bottom:20px; letter-spacing:3px;">OFFICIAL REPORT</div>
-                    <div style="font-size:9px; color:#888; margin-bottom:5px; letter-spacing:1px;">ANALYZED POTENTIAL</div>
-                    <div id="res-role" style="font-size:22px; font-weight:900; color:#fff; letter-spacing:3px;">SENTINEL</div>
-                    <div id="res-attr" style="font-size:14px; color:var(--sys-main); margin-top:5px; font-weight:bold;">불 (PYRE)</div>
-                    <div style="margin:20px 0; border-top:1px dashed var(--dimmer);"></div>
-                    <div style="font-size:9px; color:#888; margin-bottom:5px; letter-spacing:1px;">RECOMMENDED DEPT.</div>
-                    <div id="res-dept" style="font-size:13px; color:#fff; letter-spacing:1px;">최전선 타격대 뱅가드</div>
-                </div>
-                <div class="flex-row">
-                    <button class="action-btn primary-btn" onclick="applyTestResult()">CREATE_ID</button>
-                    <button class="action-btn" onclick="downloadTestResult()">SAVE_REPORT</button>
-                </div>
-                <button class="action-btn" onclick="resetTest()" style="margin-top:10px; border-color:transparent;">[ RETEST ]</button>
-            </div>
-        </div>
-
-        <div id="tab-resonance" class="tab-content">
-            <div style="font-size:12px; font-weight:900; border-bottom:1px solid var(--dimmer); padding-bottom:10px; margin-bottom:15px; letter-spacing:1px;">CORE PARAMETERS</div>
-            <div class="input-group"><span class="input-label">ENERGY AMPLITUDE <span id="val-amp" style="color:#fff;float:right;">100%</span></span><input type="range" id="param-amp" min="10" max="200" value="100" style="padding:0; border:none;"></div>
-            <div class="input-group"><span class="input-label">RESONANCE FREQUENCY <span id="val-freq" style="color:#fff;float:right;">5.0 Hz</span></span><input type="range" id="param-freq" min="1" max="150" value="50" style="padding:0; border:none;"></div>
-            <div class="input-group"><span class="input-label">PARTICLE OUTPUT <span id="val-part" style="color:#fff;float:right;">150</span></span><input type="range" id="param-part" min="0" max="300" value="150" style="padding:0; border:none;"></div>
-            
-            <div class="flex-row" style="margin-top:10px;">
-                <div><span class="input-label">WAVE_COLOR_1</span><input type="color" id="color1" value="#00FFFF" style="height:35px; padding:0; border:none; background:transparent;"></div>
-                <div><span class="input-label">WAVE_COLOR_2</span><input type="color" id="color2" value="#3388FF" style="height:35px; padding:0; border:none; background:transparent;"></div>
-            </div>
-
-            <div class="input-label" style="text-align: center; border-top:1px dashed var(--dimmer); padding-top:15px; margin-top:15px;">--- ATTRIBUTE PRESETS ---</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px;">
-                <button class="action-btn" style="padding:10px; margin:0;" onclick="applyPreset('#FF3300', '#FF8800', 160, 80, 250)">불</button>
-                <button class="action-btn" style="padding:10px; margin:0;" onclick="applyPreset('#00A8FF', '#0000FF', 80, 30, 100)">물</button>
-                <button class="action-btn" style="padding:10px; margin:0;" onclick="applyPreset('#33FF66', '#008822', 100, 45, 150)">풀</button>
-                <button class="action-btn" style="padding:10px; margin:0;" onclick="applyPreset('#FFD700', '#FFFFFF', 140, 130, 200)">번개</button>
-                <button class="action-btn" style="padding:10px; margin:0;" onclick="applyPreset('#00FFFF', '#FFFFFF', 110, 60, 180)">바람</button>
-                <button class="action-btn" style="padding:10px; margin:0;" onclick="applyPreset('#AADDFF', '#FFFFFF', 50, 15, 80)">얼음</button>
-                <button class="action-btn" style="padding:10px; margin:0; grid-column: span 2;" onclick="applyPreset('#AAAAAA', '#FFFFFF', 90, 40, 120)">무속성 (NONE)</button>
-            </div>
-            <button class="action-btn primary-btn" onclick="downloadResonance()" style="margin-top:20px;">SAVE_WAVEFORM_IMG</button>
-        </div>
-    </div>
-
-    <div id="right-id-view">
         
-        <div class="card-scene">
-            <div class="card-flipper" id="card-flipper">
-                
-                <div class="card-face card-front">
-                    <div class="id-card-wrapper">
-                        <div class="id-card-inner" id="capture-target-front">
-                            <div class="card-header">
-                                <div>
-                                    <div class="card-title">ARCH</div>
-                                    <div class="card-subtitle">STRATEGIC COMMAND</div>
-                                </div>
-                                <div class="card-logo">
-                                    <img src="「ARCH」 Symbol Logo Black Ver.png" alt="AEGIS" onerror="this.style.display='none'; this.parentNode.innerText='A.E.G.I.S'; this.parentNode.style.fontSize='9px';">
-                                </div>
-                            </div>
-                            
-                            <div class="card-photo-area" id="photo-display">
-                                <div class="photo-placeholder" id="photo-placeholder">👤</div>
-                            </div>
-                            
-                            <div class="card-data-row">
-                                <span class="data-label">OPERATOR_NAME</span>
-                                <span class="data-value" id="c-name">UNKNOWN</span>
-                            </div>
-                            <div style="display: flex; gap: 15px;">
-                                <div class="card-data-row" style="flex: 1;">
-                                    <span class="data-label">CLASS / ROLE</span>
-                                    <span class="data-value" id="c-role" style="font-size:14px;">UNKNOWN</span>
-                                </div>
-                                <div class="card-data-row" style="flex: 1;">
-                                    <span class="data-label">RANK</span>
-                                    <span class="data-value highlight" id="c-rank" style="font-size:14px;">--</span>
-                                </div>
-                            </div>
-                            <div class="card-data-row">
-                                <span class="data-label">CORE_ATTRIBUTE</span>
-                                <span class="data-value highlight" id="c-attr">SCANNING...</span>
-                            </div>
-                            <div class="card-footer">
-                                <div class="footer-top">
-                                    <div>
-                                        <div class="data-label">SYNC_WAVE_ID</div>
-                                        <div style="font-size: 9px; color: #555; margin-top: 4px; font-family:monospace;" id="c-wave">0000-0000-0000</div>
-                                    </div>
-                                </div>
-                                <div class="barcode-container">
-                                    <div class="barcode" id="c-barcode">*A000*</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-face card-back">
-                    <div class="id-card-wrapper">
-                        <div class="id-card-inner" id="capture-target-back">
-                            <div class="mag-stripe"></div>
-                            <div style="padding: 5px 0;">
-                                <p class="back-terms">
-                                    This identification card is the property of ARCH Strategic Command. It must be carried at all times while on duty and presented upon request. 
-                                    Unauthorized use, duplication, or transfer of this card is strictly prohibited and may result in disciplinary action.
-                                </p>
-                                <p class="back-terms" style="margin-top:12px; font-weight:bold;">
-                                    ISSUER: CENTRAL HARMONY DEPT.<br>
-                                    EMERGENCY: 00-ARCH-911
-                                </p>
-                            </div>
-                            <div class="sign-area"></div>
-                            <div style="font-size:8px; color:#000; text-align:center; margin-top:5px; font-weight:bold; letter-spacing:1px;">AUTHORIZED SIGNATURE</div>
-                            <div style="margin-top: auto; text-align: center;">
-                                <div class="barcode" style="font-size: 38px; opacity: 0.4;">*ARCH*</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+        <div class="flex-row">
+            <button class="action-btn primary-btn" onclick="startScanning(false)">MANUAL_GENERATE</button>
+            <button class="action-btn" onclick="startScanning(true)">RANDOM</button>
         </div>
 
-        <div class="card-controls">
-            <button class="download-btn-float" onclick="toggleCard()">[ FLIP CARD ]</button>
-            <button class="download-btn-float" style="color:#fff; border-color:#fff;" onclick="downloadCard()">[ SAVE IMAGE ]</button>
+        <div class="card-view-area">
+            <div class="card-scene">
+                <div class="card-flipper" id="card-flipper">
+                    <div class="card-face card-front">
+                        <div class="id-card-wrapper">
+                            <div class="id-card-inner" id="capture-target-front">
+                                <div class="card-header">
+                                    <div><div class="card-title">ARCH</div><div class="card-subtitle">STRATEGIC COMMAND</div></div>
+                                    <div class="card-logo"><img src="「ARCH」 Symbol Logo Black Ver.png" alt="AEGIS" onerror="this.style.display='none';"></div>
+                                </div>
+                                <div class="card-photo-area" id="photo-display">
+                                    <div class="photo-placeholder" id="photo-placeholder">👤</div>
+                                </div>
+                                <div class="card-data-row">
+                                    <span class="data-label">OPERATOR_NAME</span><span class="data-value" id="c-name">UNKNOWN</span>
+                                </div>
+                                <div style="display: flex; gap: 15px;">
+                                    <div class="card-data-row" style="flex: 1;"><span class="data-label">CLASS / ROLE</span><span class="data-value" id="c-role" style="font-size:12px;">UNKNOWN</span></div>
+                                    <div class="card-data-row" style="flex: 1;"><span class="data-label">RANK</span><span class="data-value highlight" id="c-rank" style="font-size:12px;">--</span></div>
+                                </div>
+                                <div class="card-data-row"><span class="data-label">CORE_ATTRIBUTE</span><span class="data-value highlight" id="c-attr">SCANNING...</span></div>
+                                <div class="card-footer">
+                                    <div class="data-label" style="font-size:7px;">SYNC_WAVE_ID <span style="font-family:monospace; color:#555; display:block;" id="c-wave">0000-0000</span></div>
+                                    <div class="barcode-container"><div class="barcode" id="c-barcode">*A000*</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="id-card-wrapper">
+                            <div class="id-card-inner" id="capture-target-back">
+                                <div class="mag-stripe"></div>
+                                <div style="padding: 0;">
+                                    <p class="back-terms">This identification card is the property of ARCH Strategic Command. It must be carried at all times. Unauthorized use is strictly prohibited.</p>
+                                    <p class="back-terms" style="margin-top:10px; font-weight:bold;">ISSUER: CENTRAL HARMONY DEPT.<br>EMERGENCY: 00-ARCH-911</p>
+                                </div>
+                                <div class="sign-area"></div>
+                                <div style="font-size:7px; color:#000; text-align:center; margin-top:5px; font-weight:bold; letter-spacing:1px;">AUTHORIZED SIGNATURE</div>
+                                <div style="margin-top: auto; text-align: center;"><div class="barcode" style="font-size: 36px; opacity: 0.4;">*ARCH*</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex-row" style="width: 320px;">
+                <button class="action-btn sub-btn" onclick="toggleCard()">FLIP CARD</button>
+                <button class="action-btn" onclick="downloadCard()">SAVE IMG</button>
+            </div>
+        </div>
+        <div id="terminal">>> AWAITING_INPUT...</div>
+    </div>
+
+    <div id="tab-mission" class="tab-pane">
+        <div class="section-title">MISSION_DISPATCH</div>
+        <div class="input-group">
+            <span class="input-label">TARGET OPERATOR</span>
+            <input type="text" id="m-agent-name" placeholder="메인 요원">
+        </div>
+        <div class="input-group">
+            <span class="input-label">PARTNER OPERATOR</span>
+            <input type="text" id="m-partner-name" placeholder="파트너 요원 (선택)">
+        </div>
+        <div class="flex-row">
+            <div class="input-group">
+                <span class="input-label">ROLE</span>
+                <select id="m-agent-role"><option value="센티넬">센티넬</option><option value="가이드">가이드</option></select>
+            </div>
+            <div class="input-group">
+                <span class="input-label">ATTRIBUTE</span>
+                <select id="m-agent-attr">
+                    <option value="RANDOM">랜덤</option><option value="불">불</option><option value="물">물</option>
+                    <option value="풀">풀</option><option value="번개">번개</option><option value="바람">바람</option>
+                    <option value="얼음">얼음</option><option value="무속성">무속성</option>
+                </select>
+            </div>
+        </div>
+        <button class="action-btn primary-btn" onclick="generateMission()">GENERATE_PROTOCOL</button>
+        <button class="action-btn sub-btn" onclick="copyOOC()" id="btn-copy">COPY_OOC_TEXT</button>
+        <div id="ooc-output">>> 대기 중...</div>
+    </div>
+
+    <div id="tab-test" class="tab-pane">
+        <div id="test-intro">
+            <div class="section-title">APTITUDE EVALUATION</div>
+            <p style="font-size:11px; color:#aaa; line-height:1.7; margin-bottom: 20px;">가장 본능적으로 끌리는 선택지를 고르십시오.</p>
+            <button class="action-btn primary-btn" onclick="startTest()">BEGIN_EVALUATION</button>
+        </div>
+        <div id="test-qna" style="display:none;">
+            <div style="font-size: 10px; color: var(--sys-main); letter-spacing: 2px; margin-bottom: 12px; font-weight: bold;" id="q-progress">QUESTION 1 / 5</div>
+            <div class="q-text" id="q-text">질문</div>
+            <div id="a-buttons"></div>
+        </div>
+        <div id="test-result" style="display:none;">
+            <div id="capture-test" style="background:#0a0a0a; border:1px solid var(--dimmer); padding:25px; text-align:center; border-radius:6px;">
+                <div style="font-size:14px; font-weight:900; color:#fff; border-bottom:1px solid var(--dimmer); padding-bottom:10px; margin-bottom:20px; letter-spacing:2px;">OFFICIAL REPORT</div>
+                <div style="font-size:9px; color:#888; margin-bottom:5px;">ANALYZED POTENTIAL</div>
+                <div id="res-role" style="font-size:20px; font-weight:900; color:#fff; letter-spacing:2px;">SENTINEL</div>
+                <div id="res-attr" style="font-size:14px; color:var(--sys-main); margin-top:5px; font-weight:bold;">불 (PYRE)</div>
+                <div style="margin:20px 0; border-top:1px dashed var(--dimmer);"></div>
+                <div style="font-size:9px; color:#888; margin-bottom:5px;">RECOMMENDED DEPT.</div>
+                <div id="res-dept" style="font-size:12px; color:#fff;">최전선 타격대</div>
+            </div>
+            <div class="flex-row" style="margin-top:20px;">
+                <button class="action-btn primary-btn" onclick="applyTestResult()">CREATE_ID</button>
+                <button class="action-btn" onclick="downloadTestResult()">SAVE_IMG</button>
+            </div>
+            <button class="action-btn sub-btn" onclick="resetTest()">RETEST</button>
         </div>
     </div>
 
-    <div id="right-resonance-view">
-        <canvas id="coreCanvas"></canvas>
-        <div class="overlay-info">
-            <div class="input-label" style="font-size:11px;">CURRENT_SYNC_RATE</div>
-            <div class="info-value" id="display-sync">85.0%</div>
+    <div id="tab-resonance" class="tab-pane">
+        <div class="resonance-canvas-wrapper">
+            <canvas id="coreCanvas"></canvas>
+            <div class="sync-overlay">
+                <div style="font-size:10px; color:var(--dim); letter-spacing:1px;">SYNC_RATE</div>
+                <div class="sync-val" id="display-sync">85.0%</div>
+            </div>
         </div>
+
+        <div class="section-title" style="margin-top: 10px;">PARAMETERS</div>
+        <div class="input-group"><span class="input-label">AMPLITUDE (진폭) <span id="val-amp" style="float:right;color:#fff;">100%</span></span><input type="range" id="param-amp" min="10" max="200" value="100"></div>
+        <div class="input-group"><span class="input-label">FREQUENCY (주파수) <span id="val-freq" style="float:right;color:#fff;">5.0 Hz</span></span><input type="range" id="param-freq" min="1" max="150" value="50"></div>
+        <div class="input-group"><span class="input-label">PARTICLES (입자) <span id="val-part" style="float:right;color:#fff;">150</span></span><input type="range" id="param-part" min="0" max="300" value="150"></div>
+        
+        <div class="flex-row" style="margin-top:10px; border-top: 1px dashed var(--dimmer); padding-top:15px;">
+            <div><span class="input-label">COLOR_1</span><input type="color" id="color1" value="#00FFFF" style="height:40px; padding:0; border:none; background:transparent;"></div>
+            <div><span class="input-label">COLOR_2</span><input type="color" id="color2" value="#3388FF" style="height:40px; padding:0; border:none; background:transparent;"></div>
+        </div>
+
+        <div class="input-label" style="text-align: center; margin-top:20px;">--- QUICK PRESETS ---</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+            <button class="action-btn sub-btn" style="padding:10px; margin:0;" onclick="applyPreset('#FF3300', '#FF8800', 160, 80, 250)">불</button>
+            <button class="action-btn sub-btn" style="padding:10px; margin:0;" onclick="applyPreset('#00A8FF', '#0000FF', 80, 30, 100)">물</button>
+            <button class="action-btn sub-btn" style="padding:10px; margin:0;" onclick="applyPreset('#33FF66', '#008822', 100, 45, 150)">풀</button>
+            <button class="action-btn sub-btn" style="padding:10px; margin:0;" onclick="applyPreset('#FFD700', '#FFFFFF', 140, 130, 200)">번개</button>
+            <button class="action-btn sub-btn" style="padding:10px; margin:0;" onclick="applyPreset('#00FFFF', '#FFFFFF', 110, 60, 180)">바람</button>
+            <button class="action-btn sub-btn" style="padding:10px; margin:0;" onclick="applyPreset('#AADDFF', '#FFFFFF', 50, 15, 80)">얼음</button>
+            <button class="action-btn sub-btn" style="padding:10px; margin:0; grid-column: span 3;" onclick="applyPreset('#AAAAAA', '#FFFFFF', 90, 40, 120)">무속성</button>
+        </div>
+        <button class="action-btn primary-btn" onclick="downloadResonance()" style="margin-top:20px;">SAVE_WAVEFORM</button>
     </div>
 </div>
 
 <script>
-    // 커서 및 시계
-    const cursor = document.getElementById('cursor');
-    document.addEventListener('mousemove', (e) => { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; });
-    document.addEventListener('mousedown', () => cursor.classList.add('click-anim'));
-    document.addEventListener('mouseup', () => cursor.classList.remove('click-anim'));
-    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB'); }, 1000);
+    // --- 모바일 알림 시스템 ---
+    function showNotif(msg) {
+        const notif = document.getElementById('system-notif');
+        notif.innerText = msg;
+        notif.style.display = 'block';
+        notif.style.animation = 'none';
+        void notif.offsetWidth; 
+        notif.style.animation = 'fadeInOut 3s forwards';
+        setTimeout(() => { notif.style.display = 'none'; }, 3000);
+    }
 
-    // --- 부팅 화면 처리 ---
+    // --- 부팅 ---
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { 
             const bootScreen = document.getElementById('boot-screen');
@@ -463,83 +387,31 @@
                 bootScreen.style.transition = 'opacity 0.5s ease';
                 setTimeout(() => bootScreen.style.display = 'none', 500);
             }
-            showNotif("SYSTEM_INITIALIZED"); 
-        }, 1600);
+            showNotif("SYSTEM READY"); 
+            resizeCanvas(); // 초기 캔버스 사이즈 설정
+        }, 1500);
     });
 
     document.getElementById('boot-screen').addEventListener('click', function() {
-        this.style.display = 'none'; showNotif("SYSTEM_FORCED_START");
+        this.style.display = 'none'; showNotif("SYSTEM READY"); resizeCanvas();
     });
 
-    function showNotif(msg) {
-        const notif = document.getElementById('system-notif');
-        notif.innerText = `>> ${msg}`; notif.style.display = 'block'; notif.style.animation = 'none';
-        void notif.offsetWidth; notif.style.animation = 'slideIn 0.3s forwards';
-        setTimeout(() => { notif.style.display = 'none'; }, 3000);
-    }
-
-    // 탭 전환
+    // --- 탭 전환 ---
     function switchTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active'); btn.classList.add('active');
+        document.getElementById(tabId).classList.add('active'); 
+        btn.classList.add('active');
+
+        // 스크롤 맨 위로
+        document.querySelector('.main-content').scrollTop = 0;
 
         if(tabId === 'tab-resonance') {
-            document.getElementById('right-id-view').style.display = 'none';
-            document.getElementById('right-resonance-view').style.display = 'block';
-            resizeCanvas();
-        } else {
-            document.getElementById('right-id-view').style.display = 'flex';
-            document.getElementById('right-resonance-view').style.display = 'none';
+            setTimeout(resizeCanvas, 100); // 탭 전환 후 렌더링 지연 대응
         }
     }
 
-    // --- 사진 업로드 및 드래그/줌 기능 ---
-    const photoDisplay = document.getElementById('photo-display');
-    let bgPosX = 50, bgPosY = 50, bgSize = 100;
-    let isDraggingPhoto = false;
-    let startX, startY;
-
-    function previewPhoto(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                photoDisplay.style.backgroundImage = `url(${e.target.result})`;
-                photoDisplay.style.backgroundSize = '100%';
-                photoDisplay.style.backgroundPosition = '50% 50%';
-                document.getElementById('photo-placeholder').style.display = 'none';
-                bgPosX = 50; bgPosY = 50; bgSize = 100;
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-
-    photoDisplay.addEventListener('mousedown', (e) => {
-        if(photoDisplay.style.backgroundImage) {
-            isDraggingPhoto = true;
-            startX = e.clientX; startY = e.clientY;
-        }
-    });
-    document.addEventListener('mousemove', (e) => {
-        if (!isDraggingPhoto) return;
-        const dx = e.clientX - startX; const dy = e.clientY - startY;
-        bgPosX -= dx * 0.2; bgPosY -= dy * 0.2; 
-        photoDisplay.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
-        startX = e.clientX; startY = e.clientY;
-    });
-    document.addEventListener('mouseup', () => { isDraggingPhoto = false; });
-
-    photoDisplay.addEventListener('wheel', (e) => {
-        if(photoDisplay.style.backgroundImage) {
-            e.preventDefault(); 
-            bgSize += e.deltaY * -0.1;
-            bgSize = Math.max(20, Math.min(500, bgSize)); 
-            photoDisplay.style.backgroundSize = `${bgSize}%`;
-        }
-    });
-
-    // 속성 데이터
+    // --- 속성 데이터 ---
     const attributes = {
         '불': { name: '불 (PYRE)', color: '#FF3300' },
         '물': { name: '물 (AQUA)', color: '#3388FF' },
@@ -551,7 +423,55 @@
     };
     const attrKeys = Object.keys(attributes);
 
-    // --- 3D 플립 로직 ---
+    // --- 사진 업로드 및 모바일 터치 드래그/확대 로직 ---
+    const photoDisplay = document.getElementById('photo-display');
+    const zoomSlider = document.getElementById('photo-zoom');
+    let bgPosX = 50, bgPosY = 50, bgSize = 100;
+    let startX = 0, startY = 0;
+
+    function previewPhoto(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoDisplay.style.backgroundImage = `url(${e.target.result})`;
+                photoDisplay.style.backgroundSize = '100%';
+                photoDisplay.style.backgroundPosition = '50% 50%';
+                document.getElementById('photo-placeholder').style.display = 'none';
+                bgPosX = 50; bgPosY = 50; bgSize = 100;
+                zoomSlider.value = 100;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 슬라이더 사진 크기 조절
+    zoomSlider.addEventListener('input', (e) => {
+        if(photoDisplay.style.backgroundImage) {
+            bgSize = e.target.value;
+            photoDisplay.style.backgroundSize = `${bgSize}%`;
+        }
+    });
+
+    // 터치 기반 이동
+    photoDisplay.addEventListener('touchstart', (e) => {
+        if(photoDisplay.style.backgroundImage && e.touches.length === 1) {
+            startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+        }
+    }, {passive: true});
+
+    photoDisplay.addEventListener('touchmove', (e) => {
+        if(photoDisplay.style.backgroundImage && e.touches.length === 1) {
+            e.preventDefault(); // 화면 스크롤 방지
+            const dx = e.touches[0].clientX - startX; 
+            const dy = e.touches[0].clientY - startY;
+            bgPosX -= dx * 0.5; bgPosY -= dy * 0.5; 
+            photoDisplay.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
+            startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+        }
+    }, {passive: false});
+
+    // --- 3D ID 카드 생성 로직 ---
     let isFrontActive = true;
     function toggleCard() {
         const flipper = document.getElementById('card-flipper');
@@ -572,15 +492,14 @@
         
         if(!isFrontActive) toggleCard();
 
-        term.innerHTML += `<br>>> COMMENCING_DATA_PROCESSING FOR [${nameInput.toUpperCase()}]...<br>`;
+        term.innerHTML += `<br>>> PROCESSING [${nameInput.toUpperCase()}]...<br>`;
         term.scrollTop = term.scrollHeight;
 
-        let steps = [ ">> WRITING_SECURE_DATA...", ">> ENCODING_IDENTIFIER..." ];
         let count = 0;
         let interval = setInterval(() => {
-            if (count < steps.length) { term.innerHTML += `${steps[count]}<br>`; term.scrollTop = term.scrollHeight; count++; } 
+            if (count < 2) { term.innerHTML += `>> ENCODING_DATA...<br>`; term.scrollTop = term.scrollHeight; count++; } 
             else { clearInterval(interval); finalizeID(nameInput, role, isRandom ? 'RANDOM' : manualRank, isRandom ? 'RANDOM' : manualAttr); }
-        }, 400);
+        }, 300);
     }
 
     function finalizeID(name, role, reqRank, reqAttr) {
@@ -611,7 +530,7 @@
         document.getElementById('m-agent-role').value = role === 'GUIDE' ? '가이드' : '센티넬';
         document.getElementById('m-agent-attr').value = attrKey;
 
-        term.innerHTML += `<span class="terminal-highlight">>> ID_CARD_GENERATED!</span><br>`;
+        term.innerHTML += `<span class="terminal-highlight">>> ID_CARD_ISSUED!</span><br>`;
         term.scrollTop = term.scrollHeight;
         root.style.setProperty('--card-color', assignedAttr.color);
 
@@ -620,17 +539,15 @@
         document.getElementById('c-rank').innerText = assignedRank;
         document.getElementById('c-attr').innerText = assignedAttr.name;
         document.getElementById('c-wave').innerText = `${Math.random().toString(16).substr(2, 4)}-${Math.random().toString(16).substr(2, 4)}`.toUpperCase();
-        document.getElementById('c-barcode').innerText = `*${Math.random().toString(36).substr(2, 6).toUpperCase()}*`;
-
+        
         showNotif("ID_CARD_READY");
         isScanning = false;
     }
 
-    // --- 캡처 시 3D 버그 방지 로직 적용 ---
     function downloadCard() {
         const targetId = isFrontActive ? 'capture-target-front' : 'capture-target-back';
         const target = document.getElementById(targetId);
-        showNotif("PROCESSING_IMAGE...");
+        showNotif("PROCESSING IMAGE...");
         
         const cardBack = document.querySelector('.card-back');
         const flipper = document.getElementById('card-flipper');
@@ -642,13 +559,14 @@
             cardBack.style.transform = 'rotateY(0deg)';
         }
 
+        // 모바일 사파리 충돌 방지를 위해 scale 2로 조정
         setTimeout(() => {
-            html2canvas(target, { scale: 3, backgroundColor: '#ffffff', logging: false }).then(canvas => {
+            html2canvas(target, { scale: 2, backgroundColor: '#ffffff', logging: false }).then(canvas => {
                 const link = document.createElement('a'); 
                 const side = isFrontActive ? "FRONT" : "BACK";
                 link.download = `ARCH_ID_${side}.png`;
                 link.href = canvas.toDataURL("image/png"); link.click();
-                showNotif("IMAGE_SAVED");
+                showNotif("IMAGE SAVED!");
                 
                 if(!isFrontActive) {
                     flipper.style.transform = 'rotateY(180deg)';
@@ -656,7 +574,7 @@
                     void flipper.offsetWidth;
                     flipper.style.transition = originalTransition;
                 }
-            });
+            }).catch(()=> showNotif("ERROR OCCURRED"));
         }, 50); 
     }
 
@@ -664,7 +582,7 @@
     const mType = ['전술 섬멸 작전', '구역 탐색 및 정찰', '거점 방어 및 구출', '비상 안정화 프로토콜', '하모니 정기 상담'];
     const mLoc = ['제4구역 폐허', '아이기스 외곽 방어선', '하늘정원 하층부', '특별통제 훈련장 돔', '비상 안정화실(STAB)'];
     const mTarget = ['S급 괴수 군락 진압', '미확인 파장 발생원 추적', '폭주 임박 개체 구속', '파트너 간 공명률 테스트', '거점 침투 세력 섬멸'];
-    const mGuide = ["능력 사용 시 오염도 급증 주의. 즉각적인 밀착 가이딩을 요함.", "적대 세력 조우 시 생포를 우선으로 하되, 파트너의 판단에 따를 것.", "감각 과부하가 예상됨. 작전 전 가이딩 농도 80% 이상 권장.", "돌발 상황 발생 시 현장 요원 재량으로 진압 허가.", "과도한 속성 버프 사용을 자제하고 파장 안정화에 집중할 것."];
+    const mGuide = ["오염도 급증 주의. 밀착 가이딩 요함.", "적대 세력 조우 시 생포를 우선.", "감각 과부하 예상. 가이딩 농도 80% 유지.", "돌발 상황 발생 시 현장 요원 재량 진압.", "과도한 속성 버프 자제 요망."];
 
     function generateMission() {
         let name = document.getElementById('m-agent-name').value.trim() || "미상_요원";
@@ -680,25 +598,25 @@
         const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '.');
         let partnerText = partner ? `\n■ 동행 파트너: ${partner}` : "";
 
-        const oocText = `[ 이전 RP 중지. 새로운 상황 전개. ]\n\n[ ARCH CENTRAL COMMAND : DAILY DISPATCH ]\n■ 발급일자: ${dateStr}\n■ 투입요원: ${name} (${role} / ${attr})${partnerText}\n■ 작전지역: ${l}\n■ 임무분류: ${t}\n■ 작전목표: ${tg}\n■ 지침사항: ${g}\n\n[ OOC : 위 임무 로그를 기반으로 역극을 시작합니다. ]`;
+        const oocText = `[ 이전 RP 중지. 새로운 상황 전개. ]\n\n[ ARCH CENTRAL COMMAND : DISPATCH ]\n■ 발급일자: ${dateStr}\n■ 투입요원: ${name} (${role}/${attr})${partnerText}\n■ 작전지역: ${l}\n■ 임무분류: ${t}\n■ 작전목표: ${tg}\n■ 지침사항: ${g}\n\n[ OOC : 위 로그를 기반으로 역극을 시작합니다. ]`;
 
         document.getElementById('ooc-output').innerText = oocText;
-        showNotif("MISSION_DISPATCHED");
+        showNotif("PROTOCOL GENERATED");
     }
 
     function copyOOC() {
         const text = document.getElementById('ooc-output').innerText;
-        if(text.includes('대기 중...')) return showNotif("ERROR: NO_DATA");
-        navigator.clipboard.writeText(text).then(() => { showNotif("COPIED_TO_CLIPBOARD"); });
+        if(text.includes('대기 중...')) return showNotif("NO DATA TO COPY");
+        navigator.clipboard.writeText(text).then(() => { showNotif("COPIED TO CLIPBOARD"); }).catch(()=>{ showNotif("COPY FAILED"); });
     }
 
     // --- 적성 검사 스크립트 ---
     const testData = [
-        { q: "훈련 중 동료가 치명상을 입었다. 당신의 행동은?", a: [ { t: "동료에게 다가가 파장을 안정화시킨다.", s: {guide:2, 물:1, 풀:1} }, { t: "적을 찾아내고 반격한다.", s: {sentinel:2, 불:1, 번개:1} }, { t: "방어막을 전개하여 피해를 차단한다.", s: {sentinel:1, guide:1, 얼음:2} } ] },
-        { q: "무의식을 가장 잘 표현하는 감정은?", a: [ { t: "분노와 파괴 충동", s: {sentinel:2, 불:2} }, { t: "모든 것을 포용하고 싶은 평온함", s: {guide:2, 물:2, 무속성:1} }, { t: "벗어나고 싶은 호기심과 자유", s: {sentinel:1, 바람:2} } ] },
-        { q: "거대한 장벽에 가로막혔을 때, 당신은?", a: [ { t: "장벽을 산산조각 낸다.", s: {sentinel:2, 번개:1, 불:1} }, { t: "바람이나 지형을 이용해 우회한다.", s: {바람:2, 풀:1} }, { t: "틈새를 찾아 구조를 해체한다.", s: {guide:1, 무속성:2} }, { t: "얼려버려 무력화한다.", s: {얼음:2} } ] },
-        { q: "고된 임무를 마친 후 당신이 머무는 곳은?", a: [ { t: "신체를 극한으로 몰아넣는 훈련장", s: {sentinel:2, 불:1} }, { t: "조용하고 따뜻한 정원", s: {guide:1, 풀:2} }, { t: "타인과 교감하는 라운지", s: {guide:2, 무속성:1} } ] },
-        { q: "당신에게 '능력'이란?", a: [ { t: "혼돈을 잠재우는 무기", s: {sentinel:2, 번개:2} }, { t: "상처받은 자들을 지키는 방패", s: {guide:1, 물:1, 얼음:1} }, { t: "나의 가치를 증명하는 수단", s: {sentinel:1, guide:1, 무속성:1} } ] }
+        { q: "훈련 중 동료가 치명상을 입었다. 행동은?", a: [ { t: "다가가 파장을 안정화시킨다.", s: {guide:2, 물:1, 풀:1} }, { t: "적을 찾아내고 반격한다.", s: {sentinel:2, 불:1, 번개:1} }, { t: "방어막을 전개하여 보호한다.", s: {sentinel:1, guide:1, 얼음:2} } ] },
+        { q: "무의식을 가장 잘 표현하는 감정은?", a: [ { t: "분노와 파괴 충동", s: {sentinel:2, 불:2} }, { t: "모든 것을 포용하는 평온함", s: {guide:2, 물:2, 무속성:1} }, { t: "어디로든 벗어나는 호기심", s: {sentinel:1, 바람:2} } ] },
+        { q: "거대한 장벽에 가로막혔을 때, 당신은?", a: [ { t: "산산조각 낸다.", s: {sentinel:2, 번개:1, 불:1} }, { t: "지형을 이용해 우회한다.", s: {바람:2, 풀:1} }, { t: "틈새를 찾아 해체한다.", s: {guide:1, 무속성:2} }, { t: "얼려버려 무력화한다.", s: {얼음:2} } ] },
+        { q: "고된 임무를 마친 후 머무는 곳은?", a: [ { t: "극한의 훈련장", s: {sentinel:2, 불:1} }, { t: "조용하고 따뜻한 정원", s: {guide:1, 풀:2} }, { t: "타인과 교감하는 라운지", s: {guide:2, 무속성:1} } ] },
+        { q: "당신에게 '능력'이란?", a: [ { t: "혼돈을 잠재우는 무기", s: {sentinel:2, 번개:2} }, { t: "상처받은 자들을 지키는 방패", s: {guide:1, 물:1, 얼음:1} }, { t: "가치를 증명하는 수단", s: {sentinel:1, guide:1, 무속성:1} } ] }
     ];
     let currentQ = 0; let scores = { sentinel:0, guide:0, 불:0, 물:0, 풀:0, 번개:0, 바람:0, 얼음:0, 무속성:0 };
 
@@ -719,7 +637,7 @@
         btnContainer.innerHTML = '';
         qObj.a.forEach(ans => {
             const btn = document.createElement('button');
-            btn.className = 'a-btn'; btn.innerText = ans.t;
+            btn.className = 'action-btn sub-btn'; btn.style.textAlign = 'left'; btn.innerText = ans.t;
             btn.onclick = () => { answerQuestion(ans.s); };
             btnContainer.appendChild(btn);
         });
@@ -755,14 +673,14 @@
         document.getElementById('res-attr').innerText = attributes[finalAttr].name;
         document.getElementById('res-attr').style.color = attributes[finalAttr].color;
         document.getElementById('res-dept').innerText = dept;
-        showNotif("EVALUATION_COMPLETE");
+        showNotif("EVALUATION COMPLETE");
     }
 
     function applyTestResult() { switchTab('tab-id', document.querySelector('.tab-btn:nth-child(1)')); finalizeID('UNKNOWN', window.testFinalRole, 'RANDOM', window.testFinalAttr); }
     function downloadTestResult() {
         html2canvas(document.getElementById('capture-test'), { scale: 2, backgroundColor: '#0a0a0a', logging: false }).then(canvas => {
             const link = document.createElement('a'); link.download = `ARCH_APTITUDE.png`;
-            link.href = canvas.toDataURL("image/png"); link.click(); showNotif("REPORT_SAVED");
+            link.href = canvas.toDataURL("image/png"); link.click(); showNotif("REPORT SAVED");
         });
     }
     function resetTest() { document.getElementById('test-result').style.display = 'none'; document.getElementById('test-intro').style.display = 'block'; }
@@ -775,9 +693,10 @@
     const valAmp = document.getElementById('val-amp'), valFreq = document.getElementById('val-freq'), valPart = document.getElementById('val-part'), displaySync = document.getElementById('display-sync');
 
     function resizeCanvas() {
-        if(document.getElementById('right-resonance-view').style.display !== 'none') {
-            canvas.width = document.getElementById('right-resonance-view').clientWidth;
-            canvas.height = document.getElementById('right-resonance-view').clientHeight;
+        const wrapper = document.querySelector('.resonance-canvas-wrapper');
+        if(wrapper && wrapper.offsetWidth > 0) {
+            canvas.width = wrapper.offsetWidth;
+            canvas.height = wrapper.offsetHeight;
         }
     }
     window.addEventListener('resize', resizeCanvas);
@@ -785,7 +704,7 @@
     let time = 0; let particles = [];
     class Particle {
         constructor(x, y, color1, color2) {
-            this.x = x; this.y = y; this.size = Math.random() * 3 + 1;
+            this.x = x; this.y = y; this.size = Math.random() * 2 + 1;
             this.speedX = (Math.random() - 0.5) * 2; this.speedY = (Math.random() - 1) * 3 - 1;
             this.life = 1.0; this.decay = Math.random() * 0.02 + 0.01;
             this.color = Math.random() > 0.5 ? color1 : color2;
@@ -793,7 +712,7 @@
         update() { this.x += this.speedX; this.y += this.speedY; this.life -= this.decay; }
         draw(ctx) {
             ctx.globalAlpha = Math.max(0, this.life); ctx.fillStyle = this.color;
-            ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+            ctx.shadowBlur = 8; ctx.shadowColor = this.color;
             ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
             ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
         }
@@ -801,29 +720,31 @@
 
     function animateCanvas() {
         requestAnimationFrame(animateCanvas);
-        if(document.getElementById('right-resonance-view').style.display === 'none') return;
+        if(document.getElementById('tab-resonance').style.display === 'none' && !document.getElementById('tab-resonance').classList.contains('active')) return;
 
-        ctx.fillStyle = 'rgba(10, 10, 10, 0.15)';
+        ctx.fillStyle = 'rgba(10, 10, 10, 0.2)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const amp = parseFloat(elAmp.value), freq = parseFloat(elFreq.value) * 0.0005, pLimit = parseInt(elPart.value);
+        const amp = parseFloat(elAmp.value) * (canvas.height/400); // 캔버스 비율에 맞춤
+        const freq = parseFloat(elFreq.value) * 0.001; 
+        const pLimit = parseInt(elPart.value);
         const c1 = elCol1.value, c2 = elCol2.value;
         const centerY = canvas.height / 2;
 
-        valAmp.innerText = `${amp}%`; valFreq.innerText = `${(parseFloat(elFreq.value) / 10).toFixed(1)} Hz`; valPart.innerText = pLimit;
+        valAmp.innerText = `${elAmp.value}%`; valFreq.innerText = `${(parseFloat(elFreq.value) / 10).toFixed(1)} Hz`; valPart.innerText = pLimit;
         
-        let syncRate = 100 - (amp/4) - (parseFloat(elFreq.value)/5) + (Math.random()*2);
+        let syncRate = 100 - (elAmp.value/4) - (parseFloat(elFreq.value)/5) + (Math.random()*2);
         if(syncRate > 99) syncRate = 99.9; if(syncRate < 0) syncRate = 0.0;
-        displaySync.innerText = `${syncRate.toFixed(1)}%`; displaySync.style.color = syncRate < 40 ? '#ff0000' : '#fff';
+        displaySync.innerText = `${syncRate.toFixed(1)}%`; displaySync.style.color = syncRate < 40 ? '#ff4444' : '#fff';
 
         const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
         gradient.addColorStop(0, c1); gradient.addColorStop(1, c2);
 
-        const waves = [ { a: 1.0, f: 1.0, s: 0.02, w: 4, al: 1.0 }, { a: 0.6, f: 1.5, s: 0.03, w: 2, al: 0.6 }, { a: 1.2, f: 0.8, s: 0.015, w: 1, al: 0.4 } ];
+        const waves = [ { a: 1.0, f: 1.0, s: 0.02, w: 3, al: 1.0 }, { a: 0.6, f: 1.5, s: 0.03, w: 1.5, al: 0.6 }, { a: 1.2, f: 0.8, s: 0.015, w: 1, al: 0.4 } ];
 
         waves.forEach(w => {
             ctx.beginPath(); ctx.lineWidth = w.w; ctx.strokeStyle = gradient; ctx.globalAlpha = w.al;
-            ctx.shadowBlur = 15 * w.al; ctx.shadowColor = c1;
+            ctx.shadowBlur = 10 * w.al; ctx.shadowColor = c1;
             for (let x = 0; x < canvas.width; x += 5) {
                 let envelope = Math.sin((x / canvas.width) * Math.PI); 
                 let y = centerY + Math.sin(x * freq * w.f + time * (w.s * 100)) * amp * w.a * envelope;
@@ -838,15 +759,18 @@
             particles[i].update(); particles[i].draw(ctx);
             if (particles[i].life <= 0) particles.splice(i, 1);
         }
-        if (particles.length > pLimit * 2) particles.splice(0, particles.length - pLimit * 2);
+        if (particles.length > pLimit) particles.splice(0, particles.length - pLimit);
         time += 0.05;
     }
     animateCanvas();
 
     function applyPreset(c1, c2, amp, freq, part) { elCol1.value = c1; elCol2.value = c2; elAmp.value = amp; elFreq.value = freq; elPart.value = part; }
     function downloadResonance() {
-        const link = document.createElement('a'); link.download = 'ARCH_CORE_RESONANCE.png';
-        link.href = canvas.toDataURL("image/png"); link.click(); showNotif("WAVEFORM_IMAGE_SAVED");
+        const target = document.querySelector('.resonance-canvas-wrapper');
+        html2canvas(target, { scale: 2, backgroundColor: '#000000', logging: false }).then(canvas => {
+            const link = document.createElement('a'); link.download = 'ARCH_CORE_RESONANCE.png';
+            link.href = canvas.toDataURL("image/png"); link.click(); showNotif("IMAGE SAVED");
+        });
     }
 </script>
 </body>
