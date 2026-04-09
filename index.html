@@ -649,17 +649,14 @@
     // --- ⭐ 개선된 3D 및 스케일 버그 원천 차단 초고화질 캡처 로직 ⭐ ---
     window.downloadHighRes = async function(id, filename) {
         showNotif("PROCESSING HIGH-RES IMAGE...");
-
         try {
             // 폰트 안정화 대기
             await document.fonts.ready;
-
             const original = document.getElementById(id);
             const rect = original.getBoundingClientRect();
 
             // 실제 노드 복제 (outerHTML 대신 cloneNode)
             const clone = original.cloneNode(true);
-
             // 캡처 전용 래퍼
             const wrapper = document.createElement('div');
             wrapper.style.position = 'fixed';
@@ -680,19 +677,18 @@
             clone.style.animation = 'none';
             clone.style.transition = 'none';
             clone.style.boxShadow = 'none';
-
             wrapper.appendChild(clone);
             document.body.appendChild(wrapper);
 
-            // 사진 background 강제 복사
+            // 사진 background 강제 복사 (수정된 부분)
             const origPhoto = original.querySelector('.card-photo-area');
             const clonePhoto = clone.querySelector('.card-photo-area');
 
             if (origPhoto && clonePhoto) {
-                const style = getComputedStyle(origPhoto);
-                clonePhoto.style.backgroundImage = style.backgroundImage;
-                clonePhoto.style.backgroundPosition = style.backgroundPosition;
-                clonePhoto.style.backgroundSize = style.backgroundSize;
+                // getComputedStyle 대신 인라인 style 값을 그대로 복사하여 비율(%) 유지
+                clonePhoto.style.backgroundImage = origPhoto.style.backgroundImage;
+                clonePhoto.style.backgroundPosition = origPhoto.style.backgroundPosition;
+                clonePhoto.style.backgroundSize = origPhoto.style.backgroundSize;
                 clonePhoto.style.backgroundRepeat = 'no-repeat';
             }
 
@@ -705,12 +701,10 @@
                     img.onerror = res;
                 });
             }));
-
             await new Promise(r => setTimeout(r, 300));
 
             // 모바일 타일링 아티팩트 방지를 위해 스케일 제한
             const scale = Math.min(Math.max(window.devicePixelRatio * 2, 2), 3);
-
             const canvas = await html2canvas(wrapper, {
                 scale,
                 useCORS: true,
@@ -727,7 +721,6 @@
                 windowWidth: rect.width,
                 windowHeight: rect.height
             });
-
             const link = document.createElement('a');
             link.download = `${filename}_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png', 1.0);
@@ -735,7 +728,6 @@
 
             showNotif("IMAGE SAVED SUCCESSFULLY!");
             wrapper.remove();
-
         } catch (err) {
             console.error(err);
             showNotif("CAPTURE FAILED");
@@ -860,11 +852,9 @@
     const elAmp = document.getElementById('param-amp'), elFreq = document.getElementById('param-freq'), elPart = document.getElementById('param-part');
     const elCol1 = document.getElementById('color1'), elCol2 = document.getElementById('color2');
     const valAmp = document.getElementById('val-amp'), valFreq = document.getElementById('val-freq'), valPart = document.getElementById('val-part'), displaySync = document.getElementById('display-sync');
-    
     // ⭐ 캔버스 고화질 스케일링 대응 변수
     let logicalWidth = 0;
     let logicalHeight = 0;
-
     function resizeCanvas() {
         const wrapper = document.getElementById('right-resonance-view');
         if(wrapper && wrapper.offsetWidth > 0) {
@@ -877,12 +867,13 @@
             canvas.style.width = logicalWidth + 'px';
             canvas.style.height = logicalHeight + 'px';
             
-            ctx.setTransform(1, 0, 0, 1, 0, 0); // 기존 스케일 초기화
-            ctx.scale(dpr, dpr); // 고화질 렌더링을 위한 픽셀 증폭
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            // 기존 스케일 초기화
+            ctx.scale(dpr, dpr);
+            // 고화질 렌더링을 위한 픽셀 증폭
         }
     }
     window.addEventListener('resize', resizeCanvas);
-
     let time = 0;
     let particles = [];
     class Particle {
@@ -894,7 +885,8 @@
             this.life = 1.0; this.decay = Math.random() * 0.02 + 0.01;
             this.color = Math.random() > 0.5 ? color1 : color2;
         }
-        update() { this.x += this.speedX; this.y += this.speedY; this.life -= this.decay; }
+        update() { this.x += this.speedX;
+            this.y += this.speedY; this.life -= this.decay; }
         draw(ctx) {
             ctx.globalAlpha = Math.max(0, this.life);
             ctx.fillStyle = this.color;
@@ -928,9 +920,7 @@
 
         const gradient = ctx.createLinearGradient(0, 0, logicalWidth, 0);
         gradient.addColorStop(0, c1); gradient.addColorStop(1, c2);
-        
         const waves = [ { a: 1.0, f: 1.0, s: 0.02, w: 3, al: 1.0 }, { a: 0.6, f: 1.5, s: 0.03, w: 1.5, al: 0.6 }, { a: 1.2, f: 0.8, s: 0.015, w: 1, al: 0.4 } ];
-        
         waves.forEach(w => {
             ctx.beginPath(); ctx.lineWidth = w.w; ctx.strokeStyle = gradient; ctx.globalAlpha = w.al;
             ctx.shadowBlur = 10 * w.al; ctx.shadowColor = c1;
@@ -954,7 +944,9 @@
     }
     animateCanvas();
 
-    function applyPreset(c1, c2, amp, freq, part) { elCol1.value = c1; elCol2.value = c2; elAmp.value = amp; elFreq.value = freq; elPart.value = part; }
+    function applyPreset(c1, c2, amp, freq, part) { elCol1.value = c1;
+        elCol2.value = c2; elAmp.value = amp; elFreq.value = freq; elPart.value = part;
+    }
     
     function downloadResonanceHQ() {
         showNotif("GENERATING HIGH-RES WAVEFORM...");
@@ -968,7 +960,6 @@
 
         exportCtx.fillStyle = 'rgba(255,255,255,0.03)';
         for(let i=0; i<exportCanvas.height; i+=8) exportCtx.fillRect(0, i, exportCanvas.width, 2);
-        
         const amp = parseFloat(elAmp.value) * (exportCanvas.height/400); 
         const freq = parseFloat(elFreq.value) * 0.001; 
         const pLimit = parseInt(elPart.value);
@@ -995,6 +986,7 @@
             for (let x = 0; x <= exportCanvas.width; x += 5) {
                 let envelope = Math.sin((x / exportCanvas.width) * Math.PI); 
                 let y = centerY + Math.sin(x * freq * w.f + time * (w.s * 100)) * amp * w.a * envelope;
+                
                 if (x === 0) exportCtx.moveTo(x, y); 
                 else exportCtx.lineTo(x, y);
             }
