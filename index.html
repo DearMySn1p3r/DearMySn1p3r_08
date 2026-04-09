@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>ARCH_SYSTEM_V4</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@100;300;500;700&display=swap');
+
+        :root {
+            --bg: #000000; --accent: #ffffff;
+            --dim: rgba(255, 255, 255, 0.4); --dimmer: rgba(255, 255, 255, 0.1);
+            --sys-main: #ffffff; --font: 'Orbitron', 'Noto Sans KR', sans-serif;
+            --card-color: #ffffff; 
+        }
+
+        * { box-sizing: border-box; outline: none; cursor: none !important; }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--sys-main); }
+
+        body {
+            margin: 0; background: var(--bg); color: var(--accent);
+            font-family: var(--font); height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column; user-select: none;
+        }
+
+        /* --- 커서 및 배경 --- */
+        #cursor {
+            position: fixed; width: 40px; height: 40px; border: 1px solid var(--sys-main);
+            border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10000;
+            transition: width 0.1s, height 0.1s, background-color 0.1s; box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+        #cursor::before, #cursor::after { content: ''; position: absolute; background: var(--sys-main); }
+        #cursor::before { top: 50%; left: -5px; right: -5px; height: 1px; }
+        #cursor::after { left: 50%; top: -5px; bottom: -5px; width: 1px; }
+        .click-anim { width: 20px !important; height: 20px !important; background-color: rgba(255,255,255,0.3); box-shadow: 0 0 25px var(--accent) !important; }
+
+        .scanline { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(255, 255, 255, 0.03) 50%); background-size: 100% 4px; pointer-events: none; z-index: 9000; }
+        .noise-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E"); z-index: -1; pointer-events: none; }
+
+        /* --- 레이아웃 --- */
+        header { height: 70px; border-bottom: 2px solid var(--sys-main); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; background: rgba(10, 10, 10, 0.9); z-index: 500; }
+        #main-wrapper { display: grid; grid-template-columns: 480px 1fr; flex: 1; overflow: hidden; gap: 2px; background: rgba(255, 255, 255, 0.1); }
+        .panel { background: rgba(5, 5, 5, 0.95); padding: 35px; position: relative; display: flex; flex-direction: column; overflow-y: auto; }
+
+        /* --- 탭 UI --- */
+        .tab-container { display: flex; gap: 5px; margin-bottom: 25px; border-bottom: 1px solid var(--dimmer); padding-bottom: 10px; }
+        .tab-btn { flex: 1; padding: 10px; background: transparent; color: var(--dim); border: 1px solid transparent; font-family: var(--font); font-weight: 900; letter-spacing: 1px; font-size: 11px; transition: 0.3s; }
+        .tab-btn.active { color: #fff; border-bottom: 2px solid var(--sys-main); text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .tab-btn:hover { color: #fff; }
+        .tab-content { display: none; flex-direction: column; flex: 1; }
+        .tab-content.active { display: flex; }
+
+        /* --- 공통 폼 UI --- */
+        .input-group { margin-bottom: 15px; }
+        .input-label { font-size: 10px; color: var(--dim); letter-spacing: 2px; margin-bottom: 6px; display: block; }
+        input, select { width: 100%; background: rgba(0,0,0,0.8); border: 1px solid var(--dimmer); color: #fff; padding: 12px; font-family: inherit; font-size: 12px; transition: 0.3s; text-transform: uppercase; }
+        input:focus, select:focus { border-color: var(--sys-main); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        button.action-btn { width: 100%; padding: 15px; background: transparent; color: var(--sys-main); border: 1px solid var(--sys-main); font-weight: 900; letter-spacing: 3px; transition: 0.3s; margin-top: 10px; position: relative; overflow: hidden; font-size: 12px; }
+        button.action-btn:hover { background: var(--sys-main); color: #000; box-shadow: 0 0 25px var(--sys-main); }
+
+        #terminal, #ooc-output { background: rgba(10, 10, 10, 0.8); border: 1px solid var(--dimmer); color: #aaa; padding: 15px; font-size: 11px; line-height: 1.6; margin-top: 15px; overflow-y: auto; flex-shrink: 0; box-shadow: inset 0 0 30px rgba(0,0,0,1); }
+        #terminal { height: 160px; font-family: monospace; }
+        .terminal-highlight { color: #fff; font-weight: bold; text-shadow: 0 0 5px #fff; }
+        #ooc-output { font-family: 'Noto Sans KR', monospace; font-size: 12px; line-height: 1.8; min-height: 250px; white-space: pre-wrap; word-break: keep-all; user-select: text; border-left: 3px solid var(--sys-main); color: #fff;}
+
+        /* --- 적성 검사 UI --- */
+        .q-text { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 20px; line-height: 1.5; word-break: keep-all; }
+        .a-btn { width: 100%; text-align: left; padding: 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--dimmer); color: #ddd; margin-bottom: 10px; font-family: var(--font); font-size: 12px; transition: 0.2s; line-height: 1.4; word-break: keep-all;}
+        .a-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--sys-main); color: #fff; padding-left: 20px; }
+        .test-progress { font-size: 10px; color: var(--sys-main); letter-spacing: 2px; margin-bottom: 10px; }
+        
+        /* 캡처를 위한 리포트 박스 스타일링 */
+        #capture-test { background: #0a0a0a; border: 1px solid var(--sys-main); padding: 30px; margin-bottom: 15px; position: relative; }
+        .result-box { text-align: center; }
+
+        /* --- 요원증 (ID CARD) 디자인 --- */
+        #card-display-area { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #151515 0%, #000 100%); position: relative; flex: 1; min-height: 650px; }
+        #id-card-wrapper { width: 380px; height: 580px; padding: 2px; background: linear-gradient(135deg, var(--card-color), #222, var(--card-color)); border-radius: 10px; position: relative; opacity: 0.05; transform: scale(0.9); transition: all 1s cubic-bezier(0.2, 1, 0.3, 1); box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        #id-card-wrapper.active { opacity: 1; transform: scale(1); box-shadow: 0 0 40px var(--card-color); }
+        .id-card-inner { width: 100%; height: 100%; background: #0a0a0a; border-radius: 8px; padding: 30px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .id-card-inner::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.03) 10%, transparent 10%), radial-gradient(circle, rgba(255,255,255,0.03) 10%, transparent 10%); background-size: 20px 20px; background-position: 0 0, 10px 10px; z-index: 0; pointer-events: none; }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; z-index: 1; border-bottom: 1px solid var(--dimmer); padding-bottom: 15px; margin-bottom: 20px; }
+        .card-title { font-size: 22px; font-weight: 900; letter-spacing: 5px; color: #fff; }
+        .card-subtitle { font-size: 8px; color: var(--card-color); letter-spacing: 2px; margin-top: 5px; }
+        .card-logo { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; z-index: 2; overflow: hidden; border: 1px solid transparent; border-radius: 5px;}
+        .card-logo img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 5px var(--card-color)); }
+
+        .card-photo-area { height: 160px; background: rgba(255,255,255,0.02); border: 1px solid var(--dimmer); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+        .photo-placeholder { font-size: 40px; color: var(--dimmer); }
+        .photo-scanline { position: absolute; top:0; left:0; width:100%; height:2px; background:var(--card-color); opacity: 0.5; animation: photoScan 3s infinite linear; }
+        @keyframes photoScan { 0% { top: 0; } 100% { top: 100%; } }
+
+        .card-data-row { display: flex; flex-direction: column; margin-bottom: 12px; z-index: 1; }
+        .data-label { font-size: 9px; color: #888; letter-spacing: 1px; }
+        .data-value { font-size: 16px; color: #fff; font-weight: 700; letter-spacing: 2px; margin-top: 4px; }
+        .data-value.highlight { color: var(--card-color); text-shadow: 0 0 10px var(--card-color); font-size: 16px;}
+
+        .card-footer { margin-top: auto; z-index: 1; display: flex; flex-direction: column; gap: 10px;}
+        .footer-top { display: flex; justify-content: space-between; align-items: flex-end; }
+        .barcode-container { text-align: right; overflow: hidden; }
+        .barcode { font-family: 'Libre Barcode 39', monospace; font-size: 38px; color: #fff; opacity: 0.7; letter-spacing: 2px; }
+        
+        #download-btn { position: absolute; bottom: 30px; right: 30px; width: auto; padding: 12px 20px; font-size: 10px; display: none; z-index: 100; background: rgba(0,0,0,0.8); border: 1px solid var(--sys-main); color: var(--sys-main); font-weight: bold; letter-spacing: 2px;}
+        #download-btn:hover { background: var(--sys-main); color: #000; }
+        #id-card-wrapper.active + #download-btn { display: block; }
+
+        /* --- 알림창 --- */
+        #system-notif { position: fixed; top: 30px; right: 30px; width: 350px; background: #fff; color: #000; padding: 15px 20px; font-weight: 900; display: none; z-index: 11000; letter-spacing: 1px; font-size: 11px; border-left: 5px solid var(--card-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        #boot-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 20000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .loading-text { font-size: 18px; letter-spacing: 12px; color: #fff; font-weight: 700; margin-bottom: 20px; animation: textGlitch 0.1s infinite; }
+        .loading-bar { width: 400px; height: 1px; background: rgba(255,255,255,0.2); position: relative; }
+        .loading-fill { height: 100%; background: #fff; width: 0%; box-shadow: 0 0 20px #fff; animation: fillBar 1.5s forwards ease-in-out; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="boot-screen">
+    <div class="loading-text">ARCH_SYSTEM_INITIALIZING</div>
+    <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+<div id="system-notif">>> SYSTEM_MESSAGE</div>
+<div class="scanline"></div><div class="noise-bg"></div>
+
+<header>
+    <div style="display:flex; align-items:center; gap:20px;">
+        <img src="「ARCH」 Symbol Logo White Ver.png" alt="" onerror="this.style.display='none';" style="height: 35px; width: 35px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));">
+        <span style="font-size: 24px; font-weight: 900; color: #fff; letter-spacing: 2px;">ARCH</span>
+        <span style="font-weight:500; letter-spacing:5px; font-size:12px; color:var(--dim);">| COMMAND_CENTER</span>
+    </div>
+    <div style="text-align:right; font-size:10px; color:var(--dim); line-height:1.6; font-family:monospace;">
+        SYSTEM: <span style="color:#fff;">ONLINE</span><br>
+        <span id="clock" style="color:#fff;">00:00:00</span>
+    </div>
+</header>
+
+<div id="main-wrapper">
+    <div class="panel">
+        
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('tab-id', this)">ID_CARD</button>
+            <button class="tab-btn" onclick="switchTab('tab-mission', this)">MISSION</button>
+            <button class="tab-btn" onclick="switchTab('tab-test', this)">APTITUDE_TEST</button>
+        </div>
+
+        <div id="tab-id" class="tab-content active">
+            <div class="input-group">
+                <span class="input-label">CODENAME / NAME</span>
+                <input type="text" id="agent-name" placeholder="요원명을 입력하세요">
+            </div>
+            <div class="input-group">
+                <span class="input-label">PRIMARY_ROLE</span>
+                <select id="agent-role">
+                    <option value="SENTINEL">센티넬 (SENTINEL)</option>
+                    <option value="GUIDE">가이드 (GUIDE)</option>
+                </select>
+            </div>
+            <button class="action-btn" onclick="startScanning()" id="btn-generate">INITIATE_SCAN</button>
+            <div id="terminal">>> SYSTEM_READY.<br>>> AWAITING_NEW_OPERATOR_DATA...<br></div>
+        </div>
+
+        <div id="tab-mission" class="tab-content">
+            <div style="display: flex; gap:10px;">
+                <div class="input-group" style="flex:1;">
+                    <span class="input-label">TARGET OPERATOR (메인 요원)</span>
+                    <input type="text" id="m-agent-name" placeholder="투입될 요원 이름">
+                </div>
+                <div class="input-group" style="flex:1;">
+                    <span class="input-label">PARTNER OPERATOR (파트너)</span>
+                    <input type="text" id="m-partner-name" placeholder="파트너 이름 (선택)">
+                </div>
+            </div>
+            <div style="display: flex; gap:10px;">
+                <div class="input-group" style="flex:1;">
+                    <span class="input-label">ROLE (메인 역할)</span>
+                    <select id="m-agent-role">
+                        <option value="센티넬">센티넬</option>
+                        <option value="가이드">가이드</option>
+                    </select>
+                </div>
+                <div class="input-group" style="flex:1;">
+                    <span class="input-label">ATTRIBUTE (메인 속성)</span>
+                    <select id="m-agent-attr">
+                        <option value="RANDOM">랜덤</option>
+                        <option value="불">불</option><option value="물">물</option>
+                        <option value="풀">풀</option><option value="번개">번개</option>
+                        <option value="바람">바람</option><option value="얼음">얼음</option>
+                        <option value="무속성">무속성</option>
+                    </select>
+                </div>
+            </div>
+            <button class="action-btn" onclick="generateMission()">REQUEST_MISSION</button>
+            <button class="action-btn" onclick="copyOOC()" id="btn-copy" style="border-color: var(--dimmer); color: var(--dim);">[ COPY_OOC_TEXT ]</button>
+            <div id="ooc-output">>> 대기 중... 요원 정보를 입력하고 임무를 요청하십시오.</div>
+        </div>
+
+        <div id="tab-test" class="tab-content">
+            <div id="test-intro">
+                <div style="font-size:16px; font-weight:900; color:#fff; letter-spacing:2px; margin-bottom:15px; border-bottom:1px solid var(--sys-main); padding-bottom:10px;">ARCH APTITUDE EVALUATION</div>
+                <p style="font-size:12px; color:#ccc; line-height:1.6; word-break:keep-all;">본 검사는 당신의 정신 파장과 무의식적 성향을 분석하여 최적의 포지션과 잠재 속성을 판별합니다.<br><br>가장 본능적으로 끌리는 선택지를 고르십시오.</p>
+                <button class="action-btn" onclick="startTest()">BEGIN_EVALUATION</button>
+            </div>
+            <div id="test-qna" style="display:none;">
+                <div class="test-progress" id="q-progress">QUESTION 1 / 5</div>
+                <div class="q-text" id="q-text">질문 텍스트</div>
+                <div id="a-buttons" style="display:flex; flex-direction:column;"></div>
+            </div>
+            <div id="test-result" style="display:none;">
+                <div id="capture-test">
+                    <div style="font-size:18px; font-weight:900; color:#fff; border-bottom:1px solid var(--dimmer); padding-bottom:10px; margin-bottom:20px; text-align:center; letter-spacing:3px;">
+                        OFFICIAL APTITUDE REPORT
+                    </div>
+                    <div class="result-box">
+                        <div style="font-size:10px; color:#888; margin-bottom:5px;">ANALYZED POTENTIAL</div>
+                        <div id="res-role" style="font-size:24px; font-weight:900; color:#fff; letter-spacing:3px;">SENTINEL</div>
+                        <div id="res-attr" style="font-size:16px; color:var(--sys-main); margin-top:5px; font-weight:bold;">🔥 불 (PYRE)</div>
+                        <div style="margin:20px 0; border-top:1px dashed var(--dimmer);"></div>
+                        <div style="font-size:10px; color:#888; margin-bottom:5px;">RECOMMENDED DEPT.</div>
+                        <div id="res-dept" style="font-size:14px; color:#fff; letter-spacing:1px;">최전선 타격대 뱅가드</div>
+                    </div>
+                    <div style="margin-top: 20px; text-align:right; font-size:8px; color:var(--dimmer); font-family:monospace;">
+                        ARCH_SYSTEM_V4 // AUTHORIZED BY CENTRAL CORE
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="action-btn" onclick="applyTestResult()" style="flex:1;">CREATE_ID</button>
+                    <button class="action-btn" onclick="downloadTestResult()" style="flex:1; border-color:var(--dimmer); color:var(--dim);">SAVE_REPORT</button>
+                </div>
+                <button class="action-btn" onclick="resetTest()" style="border-color:var(--dimmer); color:var(--dim); margin-top:10px;">RETEST</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="card-display-area" class="panel" style="padding:0; overflow: hidden;">
+        <div id="id-card-wrapper">
+            <div class="id-card-inner" id="capture-target">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">ARCH</div>
+                        <div class="card-subtitle">STRATEGIC COMMAND</div>
+                    </div>
+                    <div class="card-logo">
+                        <img src="「ARCH」 Symbol Logo White Ver.png" alt="AEGIS" onerror="this.style.display='none'; this.parentNode.style.border='1px solid var(--card-color)'; this.parentNode.style.color='var(--card-color)'; this.parentNode.innerText='A.E.G.I.S';">
+                    </div>
+                </div>
+                <div class="card-photo-area">
+                    <div class="photo-placeholder">👤</div>
+                    <div class="photo-scanline"></div>
+                </div>
+                <div class="card-data-row">
+                    <span class="data-label">OPERATOR_NAME</span>
+                    <span class="data-value" id="c-name">UNKNOWN</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="card-data-row" style="flex: 1;">
+                        <span class="data-label">CLASS / ROLE</span>
+                        <span class="data-value" id="c-role" style="font-size:14px;">UNKNOWN</span>
+                    </div>
+                    <div class="card-data-row" style="flex: 1;">
+                        <span class="data-label">RANK</span>
+                        <span class="data-value highlight" id="c-rank" style="font-size:14px;">--</span>
+                    </div>
+                </div>
+                <div class="card-data-row">
+                    <span class="data-label">CORE_ATTRIBUTE</span>
+                    <span class="data-value highlight" id="c-attr">SCANNING...</span>
+                </div>
+                <div class="card-footer">
+                    <div class="footer-top">
+                        <div>
+                            <div class="data-label">SYNC_WAVE_ID</div>
+                            <div style="font-size: 10px; color: #888; margin-top: 3px;" id="c-wave">0000-0000-0000</div>
+                        </div>
+                    </div>
+                    <div class="barcode-container">
+                        <div class="barcode" id="c-barcode">*A000*</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button id="download-btn" onclick="downloadCard()">[ DOWNLOAD_CARD_IMG ]</button>
+    </div>
+</div>
+
+<script>
+    // 커서 및 시계
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', (e) => { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; });
+    document.addEventListener('mousedown', () => cursor.classList.add('click-anim'));
+    document.addEventListener('mouseup', () => cursor.classList.remove('click-anim'));
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB'); }, 1000);
+
+    // 부팅
+    window.onload = () => { setTimeout(() => { document.getElementById('boot-screen').style.display = 'none'; showNotif("SYSTEM_INITIALIZED"); }, 1500); };
+    function showNotif(msg) {
+        const notif = document.getElementById('system-notif');
+        notif.innerText = `>> ${msg}`; notif.style.display = 'block'; notif.style.animation = 'none';
+        void notif.offsetWidth; notif.style.animation = 'slideIn 0.3s forwards';
+        setTimeout(() => { notif.style.display = 'none'; }, 3500);
+    }
+
+    // 탭 전환
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active'); btn.classList.add('active');
+    }
+
+    // --- 속성 데이터 ---
+    const attributes = {
+        '불': { name: '🔥 불 (PYRE)', color: '#FF4433', txt: '불' },
+        '물': { name: '💧 물 (AQUA)', color: '#3388FF', txt: '물' },
+        '풀': { name: '🌿 풀 (VERDE)', color: '#33FF66', txt: '풀' },
+        '번개': { name: '⚡ 번개 (FULMEN)', color: '#FFD700', txt: '번개' },
+        '바람': { name: '💨 바람 (AERO)', color: '#00FFFF', txt: '바람' },
+        '얼음': { name: '❄️ 얼음 (GLACIES)', color: '#FFFFFF', txt: '얼음' },
+        '무속성': { name: '무속성 (NONE)', color: '#AAAAAA', txt: '무속성' }
+    };
+    const attrKeys = Object.keys(attributes);
+
+    // --- 요원증 생성 스크립트 ---
+    let isScanning = false;
+    function startScanning(presetRole = null, presetAttr = null) {
+        if (isScanning) return;
+        const nameInput = document.getElementById('agent-name').value.trim() || 'UNKNOWN';
+        isScanning = true;
+        const btn = document.getElementById('btn-generate');
+        const term = document.getElementById('terminal');
+        const cardWrapper = document.getElementById('id-card-wrapper');
+        const role = presetRole || document.getElementById('agent-role').value;
+        
+        btn.innerText = "SCANNING..."; btn.style.pointerEvents = "none";
+        cardWrapper.classList.remove('active');
+        term.innerHTML += `<br>>> COMMENCING_SCAN FOR [${nameInput.toUpperCase()}]...<br>`;
+        term.scrollTop = term.scrollHeight;
+
+        let steps = [ ">> ANALYZING_NEURAL_PATTERN...", ">> MEASURING_CORE_RESONANCE..." ];
+        let count = 0;
+        let interval = setInterval(() => {
+            if (count < steps.length) { term.innerHTML += `${steps[count]}<br>`; term.scrollTop = term.scrollHeight; count++; } 
+            else { clearInterval(interval); finalizeID(nameInput, role, presetAttr); }
+        }, 500);
+    }
+
+    function finalizeID(name, role, presetAttr) {
+        const term = document.getElementById('terminal');
+        const cardWrapper = document.getElementById('id-card-wrapper');
+        const root = document.documentElement;
+
+        // 속성 결정
+        let attrKey = presetAttr || attrKeys[Math.floor(Math.random() * attrKeys.length)];
+        let assignedAttr = attributes[attrKey];
+
+        // 랭크 결정
+        let assignedRank = "";
+        if (role === 'GUIDE') {
+            if (attrKey !== '무속성') {
+                assignedRank = 'S-CLASS (PRIME)'; 
+            } else {
+                const gRanks = ['A-CLASS (AGENT)', 'B-CLASS (AGENT)', 'C-CLASS (ACOLYTE)'];
+                assignedRank = gRanks[Math.floor(Math.random() * gRanks.length)];
+            }
+        } else {
+            const rVal = Math.random();
+            if(rVal < 0.1) assignedRank = 'S-CLASS (VANGUARD)';
+            else if(rVal < 0.4) assignedRank = 'A-CLASS (AGENT)';
+            else if(rVal < 0.8) assignedRank = 'B-CLASS (AGENT)';
+            else assignedRank = 'C-CLASS (ACOLYTE)';
+        }
+
+        // 미션 탭 폼 채우기
+        document.getElementById('m-agent-name').value = name !== 'UNKNOWN' ? name : '';
+        document.getElementById('m-agent-role').value = role === 'GUIDE' ? '가이드' : '센티넬';
+        document.getElementById('m-agent-attr').value = attrKey;
+
+        term.innerHTML += `<span class="terminal-highlight">>> MATCH_FOUND!</span><br>>> GENERATING_ID_CARD...<br>`;
+        term.scrollTop = term.scrollHeight;
+        root.style.setProperty('--card-color', assignedAttr.color);
+
+        document.getElementById('c-name').innerText = name.toUpperCase();
+        document.getElementById('c-role').innerText = role;
+        document.getElementById('c-rank').innerText = assignedRank;
+        document.getElementById('c-attr').innerText = assignedAttr.name;
+        document.getElementById('c-wave').innerText = `${Math.random().toString(16).substr(2, 4)}-${Math.random().toString(16).substr(2, 4)}`.toUpperCase();
+        document.getElementById('c-barcode').innerText = `*${Math.random().toString(36).substr(2, 6).toUpperCase()}*`;
+
+        setTimeout(() => {
+            cardWrapper.classList.add('active'); showNotif("ID_CARD_ISSUED");
+            const btn = document.getElementById('btn-generate');
+            btn.innerText = "RE_SCAN"; btn.style.pointerEvents = "auto";
+            isScanning = false;
+        }, 500);
+    }
+
+    function downloadCard() {
+        const target = document.getElementById('capture-target');
+        const btn = document.getElementById('download-btn'); btn.innerText = "PROCESSING...";
+        html2canvas(target, { scale: 2, backgroundColor: '#0a0a0a', logging: false }).then(canvas => {
+            const link = document.createElement('a'); link.download = `ARCH_ID.png`;
+            link.href = canvas.toDataURL("image/png"); link.click();
+            btn.innerText = "[ DOWNLOAD_CARD_IMG ]"; showNotif("IMAGE_SAVED");
+        });
+    }
+
+    // --- 미션 생성 스크립트 ---
+    const mType = ['전술 섬멸 작전', '구역 탐색 및 정찰', '거점 방어 및 구출', '비상 안정화 프로토콜', '하모니 정기 상담'];
+    const mLoc = ['제4구역 폐허', '아이기스 외곽 방어선', '하늘정원 하층부', '특별통제 훈련장 돔', '비상 안정화실(STAB)'];
+    const mTarget = ['S급 괴수 군락 진압', '미확인 파장 발생원 추적', '폭주 임박 개체 구속', '파트너 간 공명률 테스트', '거점 침투 세력 섬멸'];
+    const mGuide = ["능력 사용 시 오염도 급증 주의. 즉각적인 밀착 가이딩을 요함.", "적대 세력 조우 시 생포를 우선으로 하되, 파트너의 판단에 따를 것.", "감각 과부하가 예상됨. 작전 전 가이딩 농도 80% 이상 권장.", "돌발 상황 발생 시 현장 요원 재량으로 진압 허가.", "과도한 속성 버프 사용을 자제하고 파장 안정화에 집중할 것."];
+
+    function generateMission() {
+        let name = document.getElementById('m-agent-name').value.trim() || "미상_요원";
+        let partner = document.getElementById('m-partner-name').value.trim();
+        let role = document.getElementById('m-agent-role').value;
+        let attr = document.getElementById('m-agent-attr').value;
+        if(attr === 'RANDOM') attr = attrKeys[Math.floor(Math.random() * attrKeys.length)];
+
+        const t = mType[Math.floor(Math.random() * mType.length)];
+        const l = mLoc[Math.floor(Math.random() * mLoc.length)];
+        const tg = mTarget[Math.floor(Math.random() * mTarget.length)];
+        const g = mGuide[Math.floor(Math.random() * mGuide.length)];
+        const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '.');
+
+        let partnerText = partner ? `\n■ 동행 파트너: ${partner}` : "";
+
+        const oocText = `[ 이전 RP 중지. 새로운 상황 전개. ]
+
+[ ARCH CENTRAL COMMAND : DAILY DISPATCH ]
+■ 발급일자: ${dateStr}
+■ 투입요원: ${name} (${role} / ${attr})${partnerText}
+■ 작전지역: ${l}
+■ 임무분류: ${t}
+■ 작전목표: ${tg}
+■ 지침사항: ${g}
+
+[ OOC : 위 임무 로그를 기반으로 역극을 시작합니다. ]`;
+
+        document.getElementById('ooc-output').innerText = oocText;
+        document.getElementById('btn-copy').style.color = 'var(--sys-main)';
+        document.getElementById('btn-copy').style.borderColor = 'var(--sys-main)';
+        showNotif("MISSION_DISPATCHED");
+    }
+
+    function copyOOC() {
+        const text = document.getElementById('ooc-output').innerText;
+        if(text.includes('대기 중...')) return showNotif("ERROR: NO_DATA");
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById('btn-copy');
+            btn.innerText = "[ COPIED! ]"; btn.style.background = 'var(--sys-main)'; btn.style.color = '#000';
+            setTimeout(() => { btn.innerText = "[ COPY_OOC_TEXT ]"; btn.style.background = 'transparent'; btn.style.color = 'var(--sys-main)'; }, 2000);
+        });
+    }
+
+    // --- 적성 검사 스크립트 ---
+    const testData = [
+        { q: "훈련 중 동료가 치명상을 입었다. 당신의 첫 번째 행동은?", a: [ { t: "즉시 동료에게 다가가 파장을 안정화시킨다.", s: {guide:2, 물:1, 풀:1} }, { t: "주변을 스캔하여 적을 찾아내고 반격한다.", s: {sentinel:2, 불:1, 번개:1} }, { t: "방어막을 전개하여 추가 피해를 차단한다.", s: {sentinel:1, guide:1, 얼음:2} } ] },
+        { q: "당신의 무의식을 가장 잘 표현하는 감정은?", a: [ { t: "통제하기 힘든 분노와 파괴 충동", s: {sentinel:2, 불:2} }, { t: "모든 것을 포용하고 싶은 평온함", s: {guide:2, 물:2, 무속성:1} }, { t: "어디로든 벗어나고 싶은 호기심과 자유", s: {sentinel:1, 바람:2} } ] },
+        { q: "거대한 장벽에 가로막혔을 때, 당신은?", a: [ { t: "장벽 자체를 산산조각 내어 부순다.", s: {sentinel:2, 번개:1, 불:1} }, { t: "바람이나 지형을 이용해 우회한다.", s: {바람:2, 풀:1} }, { t: "장벽의 틈새를 찾아 구조를 해체한다.", s: {guide:1, 무속성:2} }, { t: "장벽을 완전히 얼려버려 무력화한다.", s: {얼음:2} } ] },
+        { q: "고된 임무를 마치고 돌아왔다. 당신이 머무는 곳은?", a: [ { t: "신체를 극한으로 몰아넣는 훈련장", s: {sentinel:2, 불:1} }, { t: "조용하고 따뜻한 온실 정원", s: {guide:1, 풀:2} }, { t: "타인과 교감할 수 있는 하모니 라운지", s: {guide:2, 무속성:1} } ] },
+        { q: "당신에게 '능력'이란 무엇인가?", a: [ { t: "혼돈을 잠재우고 적을 멸하는 무기", s: {sentinel:2, 번개:2} }, { t: "상처받은 자들을 지키는 굳건한 방패", s: {guide:1, 물:1, 얼음:1} }, { t: "나의 존재 가치를 증명하는 유일한 수단", s: {sentinel:1, guide:1, 무속성:1} } ] }
+    ];
+
+    let currentQ = 0;
+    let scores = { sentinel:0, guide:0, 불:0, 물:0, 풀:0, 번개:0, 바람:0, 얼음:0, 무속성:0 };
+
+    function startTest() {
+        scores = { sentinel:0, guide:0, 불:0, 물:0, 풀:0, 번개:0, 바람:0, 얼음:0, 무속성:0 };
+        currentQ = 0;
+        document.getElementById('test-intro').style.display = 'none';
+        document.getElementById('test-result').style.display = 'none';
+        document.getElementById('test-qna').style.display = 'block';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const qObj = testData[currentQ];
+        document.getElementById('q-progress').innerText = `QUESTION ${currentQ + 1} / 5`;
+        document.getElementById('q-text').innerText = qObj.q;
+        const btnContainer = document.getElementById('a-buttons');
+        btnContainer.innerHTML = '';
+        qObj.a.forEach(ans => {
+            const btn = document.createElement('button');
+            btn.className = 'a-btn'; btn.innerText = ans.t;
+            btn.onclick = () => { answerQuestion(ans.s); };
+            btnContainer.appendChild(btn);
+        });
+    }
+
+    function answerQuestion(scoreObj) {
+        for(let key in scoreObj) { if(scores[key] !== undefined) scores[key] += scoreObj[key]; }
+        currentQ++;
+        if(currentQ < testData.length) showQuestion(); else showResult();
+    }
+
+    function showResult() {
+        document.getElementById('test-qna').style.display = 'none';
+        document.getElementById('test-result').style.display = 'block';
+
+        let finalRole = scores.guide > scores.sentinel ? 'GUIDE' : 'SENTINEL';
+        let finalAttr = '무속성'; let maxScore = -1;
+        ['불', '물', '풀', '번개', '바람', '얼음', '무속성'].forEach(a => {
+            if(scores[a] > maxScore) { maxScore = scores[a]; finalAttr = a; }
+        });
+
+        let dept = "";
+        if (finalRole === 'GUIDE') dept = finalAttr === '무속성' ? "하모니 부서 일반 지원반" : "하모니 부서 속성 특수케어반";
+        else {
+            if(finalAttr === '불' || finalAttr === '번개') dept = "제1선봉대 타격 특화조";
+            else if(finalAttr === '얼음' || finalAttr === '물') dept = "아이기스 본부 특수방어팀";
+            else if(finalAttr === '바람' || finalAttr === '풀') dept = "외곽 정찰 및 생포 전담반";
+            else dept = "중앙 전술 관제 센터";
+        }
+
+        window.testFinalRole = finalRole;
+        window.testFinalAttr = finalAttr;
+
+        document.getElementById('res-role').innerText = finalRole;
+        document.getElementById('res-attr').innerText = attributes[finalAttr].name;
+        document.getElementById('res-attr').style.color = attributes[finalAttr].color;
+        document.getElementById('res-dept').innerText = dept;
+        showNotif("EVALUATION_COMPLETE");
+    }
+
+    function applyTestResult() {
+        switchTab('tab-id', document.querySelector('.tab-btn:nth-child(1)'));
+        startScanning(window.testFinalRole, window.testFinalAttr);
+    }
+
+    function downloadTestResult() {
+        const target = document.getElementById('capture-test');
+        showNotif("PROCESSING_IMAGE...");
+        html2canvas(target, { scale: 2, backgroundColor: '#0a0a0a', logging: false }).then(canvas => {
+            const link = document.createElement('a'); link.download = `ARCH_APTITUDE_REPORT.png`;
+            link.href = canvas.toDataURL("image/png"); link.click();
+            showNotif("REPORT_SAVED");
+        });
+    }
+
+    function resetTest() {
+        document.getElementById('test-result').style.display = 'none';
+        document.getElementById('test-intro').style.display = 'block';
+    }
+</script>
+</body>
+</html>
