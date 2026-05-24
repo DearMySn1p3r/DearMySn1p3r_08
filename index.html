@@ -499,24 +499,41 @@
         }
     }
 
-    // --- ⭐ 사진 이동 및 확대 (모바일/PC 통합 Pointer Event) ⭐ ---
+    // --- ⭐ 사진 이동 및 비율 계산 (모바일/PC 통합) ⭐ ---
     const photoDisplay = document.getElementById('photo-display');
     const zoomSlider = document.getElementById('photo-zoom');
     let bgPosX = 50, bgPosY = 50, bgSize = 100;
     let isDraggingPhoto = false;
     let startX, startY;
+    let isImgWide = false; // 이미지의 가로세로 비율 상태를 저장
 
     function previewPhoto(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                photoDisplay.style.backgroundImage = `url(${e.target.result})`;
-                photoDisplay.style.backgroundSize = '100%';
-                photoDisplay.style.backgroundPosition = '50% 50%';
-                document.getElementById('photo-placeholder').style.display = 'none';
-                bgPosX = 50; bgPosY = 50; bgSize = 100;
-                zoomSlider.value = 100; 
+                const img = new Image();
+                img.onload = function() {
+                    // 원본 이미지의 비율과 3:4 사원증 사진 컨테이너의 비율 계산 (520 / 692 ≈ 0.75)
+                    const imgRatio = img.width / img.height;
+                    const containerRatio = 520 / 692;
+
+                    // 정사각형이거나 가로가 넓은 사진일 경우, 세로에 100%를 맞추어 네모로 눌리는 현상 방지
+                    if (imgRatio > containerRatio) {
+                        isImgWide = true;
+                        photoDisplay.style.backgroundSize = 'auto 100%';
+                    } else {
+                        isImgWide = false;
+                        photoDisplay.style.backgroundSize = '100% auto';
+                    }
+
+                    photoDisplay.style.backgroundImage = `url(${img.src})`;
+                    photoDisplay.style.backgroundPosition = '50% 50%';
+                    document.getElementById('photo-placeholder').style.display = 'none';
+                    bgPosX = 50; bgPosY = 50; bgSize = 100;
+                    zoomSlider.value = 100; 
+                }
+                img.src = e.target.result;
             }
             reader.readAsDataURL(file);
         }
@@ -525,7 +542,12 @@
     zoomSlider.addEventListener('input', (e) => {
         if(photoDisplay.style.backgroundImage) {
             bgSize = e.target.value;
-            photoDisplay.style.backgroundSize = `${bgSize}%`;
+            // 확대/축소 시에도 원본 사진의 비율에 따라 알맞게 사이즈 조정
+            if (isImgWide) {
+                photoDisplay.style.backgroundSize = `auto ${bgSize}%`;
+            } else {
+                photoDisplay.style.backgroundSize = `${bgSize}% auto`;
+            }
         }
     });
 
@@ -559,7 +581,12 @@
             bgSize += e.deltaY * -0.1;
             bgSize = Math.max(20, Math.min(400, bgSize)); 
             zoomSlider.value = bgSize; 
-            photoDisplay.style.backgroundSize = `${bgSize}%`;
+            
+            if (isImgWide) {
+                photoDisplay.style.backgroundSize = `auto ${bgSize}%`;
+            } else {
+                photoDisplay.style.backgroundSize = `${bgSize}% auto`;
+            }
         }
     });
 
