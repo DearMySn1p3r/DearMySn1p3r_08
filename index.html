@@ -67,7 +67,10 @@ header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:1
 
 /* layout */
 #main{flex:1;display:grid;grid-template-columns:1fr 360px;min-height:0}
-#stage{position:relative;overflow:hidden;min-height:0}
+#stage{position:relative;overflow:hidden;min-height:0;isolation:isolate;z-index:0}
+#main{position:relative;z-index:0;isolation:isolate}
+#scene{transition:opacity .7s var(--ease) .75s}
+body:not(.ready) #scene{opacity:0;visibility:hidden}
 #bg{position:absolute;inset:0;width:100%;height:100%}
 .frame{position:absolute;inset:14px;pointer-events:none;z-index:2}
 .frame i{position:absolute;width:16px;height:16px;border:0 solid rgba(255,255,255,.45)}
@@ -83,6 +86,8 @@ header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:1
 .st-r b{color:#fff;font:500 9px var(--mono);letter-spacing:.18em}
 .view{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:2}
 .view.on{display:flex;animation:fadeIn .5s var(--ease)}
+#v-mission,#v-test{overflow-y:auto;padding:150px 20px 40px}
+#v-mission>*,#v-test>*{margin:auto 0}
 @keyframes fadeIn{from{opacity:0}}
 .st-bot{position:absolute;left:32px;right:32px;bottom:22px;display:flex;align-items:flex-end;gap:24px;pointer-events:none;z-index:3}
 #evlog{display:flex;flex-direction:column-reverse;gap:6px;flex:1;min-width:0}
@@ -143,7 +148,7 @@ header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:1
 .chips button.on{background:#fff;color:#000}
 
 /* ===== ID CARD ===== */
-#v-card{flex-direction:column;gap:18px;padding:70px 20px 70px}
+#v-card{flex-direction:column;gap:18px;padding:150px 20px 80px}
 .scene{position:relative;perspective:1600px}
 .tilt{transform-style:preserve-3d;transition:transform .5s var(--ease)}
 .flip{position:relative;transform-style:preserve-3d;transition:transform .9s var(--ease)}
@@ -168,7 +173,7 @@ header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:1
 .c-head .sb{font:700 11px/1 'Orbitron',sans-serif;letter-spacing:.3em;color:#666;margin-top:12px}
 .c-head img{width:56px;height:56px;object-fit:contain}
 .c-photo{width:270px;height:348px;margin:36px auto 0;flex:none;border:2px solid #e2e2e2;border-radius:12px;padding:0;overflow:hidden}
-.c-photo canvas{display:block;width:266px;height:344px}
+.c-photo canvas{display:block;width:266px;height:344px;touch-action:none}
 .c-name{text-align:center;margin-top:28px}
 .c-name .nm{font:900 44px/1.15 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:#000;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .c-name .cd{font:700 12px 'Orbitron',sans-serif;letter-spacing:.3em;color:var(--mid);margin-top:10px}
@@ -176,7 +181,8 @@ header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:1
 .c-tri>div{border-top:3px solid #000;padding-top:14px}
 .c-tri>div.a{border-color:var(--acc)}
 .c-tri .vv{font:900 19px/1.2 'Orbitron','Noto Sans KR',sans-serif;letter-spacing:.06em;margin-top:9px;color:#000;white-space:nowrap}
-.c-tri .a .vv{color:var(--acc)}
+.c-tri .a .vv{color:var(--acc);white-space:nowrap}
+.c-tri .vv .en{font-size:15px;letter-spacing:.04em}
 .c-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;padding-top:20px;border-top:2px solid var(--line)}
 .c-foot>div{display:flex;flex-direction:column}
 .c-foot .wid{font:500 16px 'JetBrains Mono',monospace;color:#555;letter-spacing:.06em;margin-top:9px}
@@ -199,10 +205,10 @@ header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:1
 .doss-code .lv i{width:18px;height:3px;background:rgba(0,0,0,.15)}
 .doss-code .lv i.on{background:#000}
 .doss-t{flex:1;padding:16px 20px;display:flex;flex-direction:column;justify-content:center}
-.doss-t .tt{font:600 20px var(--sans);letter-spacing:-.01em;margin-top:6px}
+.doss-t .tt{font:600 20px var(--sans);letter-spacing:-.01em;margin-top:6px;word-break:keep-all}
 .doss-b{display:grid;grid-template-columns:1fr 150px}
 .doss-f{padding:6px 20px 20px}
-.df{display:grid;grid-template-columns:86px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--hl);font-size:13px;line-height:1.6}
+.df{display:grid;grid-template-columns:86px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--hl);font-size:13px;line-height:1.6;word-break:keep-all}
 .df:last-child{border:none}
 .df .lbl{padding-top:3px}
 .df.tw{animation:rise .5s var(--ease)}
@@ -226,7 +232,7 @@ header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:1
 .ans span{font:500 10px var(--mono);color:var(--t4);width:16px;transition:color .2s}
 .ans:hover{border-color:#fff;color:#fff;padding-left:24px}
 .ans:hover span{color:#fff}
-.rep{width:min(640px,90%);display:grid;grid-template-columns:1fr 250px;background:#070707;border:1px solid rgba(255,255,255,.35);animation:rise .6s var(--ease)}
+.rep{width:min(700px,92%);display:grid;grid-template-columns:1fr 250px;background:#070707;border:1px solid rgba(255,255,255,.35);animation:rise .6s var(--ease)}
 .rep-l{padding:26px 26px 22px}
 .rep-r{border-left:1px solid var(--hl);padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .rep-r svg{width:210px;height:210px}
@@ -236,16 +242,22 @@ header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:1
 .rep .arch{font-size:14px;color:var(--t2);margin-bottom:18px}
 .rep .rr{display:grid;grid-template-columns:92px 1fr;padding:10px 0;border-top:1px solid var(--hl);font-size:13px;align-items:center}
 .rep .rr svg{width:16px;height:16px;vertical-align:-3px;margin-right:6px}
-.rep .quote{margin-top:16px;font-size:12.5px;line-height:1.75;color:var(--t3);word-break:keep-all}
+.rep-x{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--hl)}
+.rep-x>div{padding:18px 26px 20px;border-bottom:1px solid var(--hl)}
+.rep-x>div:nth-child(odd){border-right:1px solid var(--hl)}
+.rep-x>div:nth-last-child(-n+2){border-bottom:none}
+.rep-x p{font-size:13px;line-height:1.8;color:var(--t2);word-break:keep-all;margin-top:10px}
 
 /* ===== SYNC ===== */
 #v-sync{align-items:stretch;justify-content:stretch}
+body[data-tab=sync] #evlog{opacity:.35}
+body[data-tab=mission] .st-bot,body[data-tab=test] .st-bot{display:none}
 #syncCv{position:absolute;inset:0;width:100%;height:100%}
 .sync-hud{position:absolute;left:50%;top:118px;transform:translateX(-50%);text-align:center;pointer-events:none}
 .sync-hud .num{font:200 64px/1 var(--sans);letter-spacing:-.03em}
 .sync-hud .num small{font-size:22px;color:var(--t3)}
 .sync-hud .gr{font:500 10px var(--mono);letter-spacing:.24em;color:var(--t3);margin-top:8px}
-.sync-names{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);display:flex;gap:40px;font-size:12px;color:var(--t3);pointer-events:none;white-space:nowrap}
+.sync-names{position:absolute;left:50%;bottom:118px;transform:translateX(-50%);display:flex;gap:40px;font-size:12px;color:var(--t3);pointer-events:none;white-space:nowrap}
 .sync-names b{color:#fff;font-weight:500;margin-left:8px}
 .sync-names i{display:inline-block;width:18px;vertical-align:middle;margin-right:8px;border-top:1px solid #fff}
 .sync-names i.d{border-top-style:dashed;border-color:var(--t2)}
@@ -272,13 +284,15 @@ header::after{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:1
 @keyframes flash{0%{opacity:.5}100%{opacity:0}}
 
 /* boot */
-#boot{position:fixed;inset:0;z-index:40000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+#boot{position:fixed;inset:0;background:#000;z-index:40000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
 .bh{position:absolute;left:0;right:0;height:50.5%;background:#000;transition:transform 1s var(--ease)}
 .bh.t{top:0}.bh.b{bottom:0}
-#boot.split .bh.t{transform:translateY(-100%)}
-#boot.split .bh.b{transform:translateY(100%)}
+#boot{transition:opacity .7s var(--ease)}
+#boot.split{opacity:0}
 .bcol{position:relative;display:flex;flex-direction:column;align-items:center;transition:opacity .45s var(--ease),transform .6s var(--ease)}
 #boot.out .bcol{opacity:0;transform:scale(.94)}
+#boot.out .b-skip,#boot.split .b-skip{opacity:0!important;visibility:hidden}
+
 .bc{position:relative;width:200px;height:200px;display:flex;align-items:center;justify-content:center}
 .b-x,.b-y{position:absolute;left:50%;top:50%;pointer-events:none}
 .b-x{width:100vw;height:1px;margin-left:-50vw;transform:scaleX(0);background:linear-gradient(90deg,transparent,rgba(255,255,255,.9) 35%,rgba(255,255,255,.9) 65%,transparent);transition:transform 1s var(--ease),opacity .6s}
@@ -314,6 +328,7 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
 
 #mnav{display:none}
 @media (hover:none),(pointer:coarse){*{cursor:auto!important}#cursor,#cur-dot{display:none!important}.holo{display:none}}
+@media (max-width:1320px){.st-r{display:none}}
 @media (max-width:1180px){.status .st:nth-child(n+3){display:none}#main{grid-template-columns:1fr 330px}}
 @media (max-width:900px){
   html,body{height:100%;overflow:hidden}
@@ -332,11 +347,15 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
   .st-bot{display:none}
   #v-card{padding:24px 16px 20px}
   .card-ctrl{flex-wrap:wrap;justify-content:center}
-  #v-mission,#v-test{padding:24px 0 26px}
+  #v-mission,#v-test{padding:24px 0 26px;overflow:visible}
   .doss,.qbox,.rep{width:calc(100% - 32px)}
-  .doss-b,.rep{grid-template-columns:1fr}
+  .doss-b,.rep,.rep-x{grid-template-columns:1fr}
+  .rep-x>div{border-right:none!important;border-bottom:1px solid var(--hl)!important}
   .doss-map,.rep-r{border-left:none;border-top:1px solid var(--hl)}
-  .doss-map svg{max-width:180px;margin:0 auto}
+  .doss-h{flex-direction:column}
+  .doss-code{min-width:0}
+  .doss-map{display:flex;flex-direction:column;align-items:center;padding:18px 16px 76px}
+  .doss-map svg{width:150px;max-width:150px}
   .qtxt{font-size:20px}
   #v-sync{height:380px}
   .sync-hud{top:30px}
@@ -352,7 +371,7 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
   #mnav button::before{content:'';position:absolute;top:-1px;left:28%;right:28%;height:1px;background:#fff;transform:scaleX(0);transition:transform .4s var(--ease)}
   #mnav button.on{color:#fff}
   #mnav button.on::before{transform:scaleX(1)}
-  #toast{top:calc(60px + env(safe-area-inset-top))}
+  #toast{top:auto;bottom:calc(76px + env(safe-area-inset-bottom))}
   .bc{width:170px;height:170px}.b-logo{width:76px;height:76px}.b-word{font-size:20px}
 }
 </style>
@@ -361,7 +380,6 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
 <div id="cur-dot"></div><div id="cursor"><i></i><i></i><i></i><i></i><b>LOCK</b></div>
 
 <div id="boot" onclick="skipBoot()">
-  <div class="bh t"></div><div class="bh b"></div>
   <div class="bcol">
     <div class="bc">
       <i class="b-x"></i><i class="b-y"></i>
@@ -415,6 +433,7 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
       <div class="card-ctrl">
         <button class="btn sm" onclick="flipCard()">카드 뒤집기</button>
         <button class="btn sm" onclick="saveCard()">이미지 저장</button>
+        <button class="btn sm" onclick="savePrint()">인쇄용 저장</button>
       </div>
     </div>
 
@@ -422,7 +441,7 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
     <div class="view" id="v-mission"><div class="empty-v" id="m-empty"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width=".8"><rect x="4" y="3" width="16" height="18"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><div class="lbl">No Active Dispatch</div><p>사이드바에서 작전을 요청하세요</p></div><div id="doss"></div></div>
 
     <!-- TEST -->
-    <div class="view" id="v-test"><div id="testStage"></div></div>
+    <div class="view" id="v-test"><div id="testStage"><div class="empty-v"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width=".8"><path d="M12 2.5l8.5 5v9L12 21.5l-8.5-5v-9z"/><path d="M12 7.5l4 2.3v4.4L12 16.5l-4-2.3V9.8z"/></svg><div class="lbl">Awaiting Evaluation</div><p>사이드바에서 ‘평가 시작’을 누르세요</p></div></div></div>
 
     <!-- SYNC -->
     <div class="view" id="v-sync">
@@ -596,9 +615,10 @@ function runBoot(){let s='';for(let i=0;i<72;i++){const a=i/72*Math.PI*2,r1=i%6?
   bootT.push(setTimeout(()=>{$('boot').classList.add('s5');[['PERSONNEL DB','ONLINE'],['ID PRINTER','READY'],['HARMONY LINK','SYNCED'],['THREAT','CRITICAL']].forEach((l,i)=>bootT.push(setTimeout(()=>{$('blog').innerHTML+=`${l[0].padEnd(16,'.')} <b>${l[1]}</b>\n`;},i*230)));},1850));
   bootT.push(setTimeout(finishBoot,3300));}
 function skipBoot(){if(booted)return;bootT.forEach(clearTimeout);$('boot').classList.add('s1','s2','s3','s4','s5');$('bword').textContent='ARCH';finishBoot();}
-function finishBoot(){if(booted)return;booted=true;const b=$('boot');b.classList.add('out');
+function finishBoot(){if(booted)return;booted=true;bootT.forEach(clearTimeout);const b=$('boot');if(!b)return;b.classList.add('out');b.style.pointerEvents='none';
   setTimeout(()=>{b.classList.add('split');document.body.classList.add('ready');moveInk();},380);
-  setTimeout(()=>{b.style.display='none';toast('COMMAND CENTER ONLINE');logEv('SYSTEM','인사 데이터베이스 연결 완료');},1450);}
+  setTimeout(()=>{b.remove();toast('COMMAND CENTER ONLINE');logEv('SYSTEM','인사 데이터베이스 연결 완료');},1450);}
+setTimeout(()=>{if(!booted)skipBoot();},7000);
 
 /* ═════ TABS ═════ */
 const TABINFO={
@@ -610,7 +630,7 @@ const TABINFO={
 let TAB='card';
 function moveInk(){const b=document.querySelector('.tabs button.on');if(!b)return;$('ink').style.left=b.offsetLeft+'px';$('ink').style.width=b.offsetWidth+'px';}
 function setTab(t){
-  TAB=t;document.querySelectorAll('.tabs button,#mnav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));moveInk();
+  TAB=t;document.body.dataset.tab=t;document.querySelectorAll('.tabs button,#mnav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));moveInk();
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+t));
   const I=TABINFO[t];$('st-k').textContent=I[0];decode($('st-t'),I[1],420);$('st-p').textContent=I[2];$('st-hint').textContent=I[3];
@@ -649,7 +669,7 @@ function buildCards(){
     <div class="c-head"><div><div class="wm">ARCH</div><div class="sb">STRATEGIC COMMAND</div></div><img src="${LOGO_B}" alt="" onerror="this.style.display='none'"></div>
     <div class="c-photo"><canvas id="phCv" width="798" height="1032"></canvas></div>
     <div class="c-name"><div class="lb">OPERATOR_NAME</div><div class="nm">${esc(ID.name||'UNKNOWN')}</div>${ID.code?`<div class="cd">${esc(ID.code.toUpperCase())}</div>`:''}</div>
-    <div class="c-tri"><div><div class="lb">CLASS / ROLE</div><div class="vv">${ID.role}</div></div><div><div class="lb">RANK</div><div class="vv">${ID.rank}-CLASS</div></div><div class="a"><div class="lb">ATTRIBUTE</div><div class="vv">${ID.attr}</div></div></div>
+    <div class="c-tri"><div><div class="lb">CLASS / ROLE</div><div class="vv">${ID.role}</div></div><div><div class="lb">RANK</div><div class="vv">${ID.rank}-CLASS</div></div><div class="a"><div class="lb">ATTRIBUTE</div><div class="vv">${ID.attr} <span class="en">(${A.en[0]+A.en.slice(1).toLowerCase()})</span></div></div></div>
     <div class="c-foot"><div><div class="lb">SYNC_WAVE_ID</div><div class="wid">${ID.no}</div></div><div>${barcodeSVG(ID.no,52,'#000')}</div></div>
   </div>`;
   B.innerHTML=`<div class="in"><div class="cb-mag"></div>
@@ -677,7 +697,7 @@ function flipCard(){$('flip').classList.toggle('back');}
 /* fit & tilt */
 let CARD_S=.5;
 function fitCard(){const v=$('v-card');if(!v.classList.contains('on'))return;const m=LAYOUT()==='m';
-  const W=m?Math.min(innerWidth-48,420):v.clientWidth-80,H=m?9999:v.clientHeight-200;CARD_S=Math.max(.3,Math.min(W/640,H/1010,.72));
+  const W=m?Math.min(innerWidth-48,420):v.clientWidth-80,H=m?9999:v.clientHeight-270;CARD_S=Math.max(.3,Math.min(W/640,H/1010,.72));
   const w=640*CARD_S,h=1010*CARD_S;const sc=$('scene');sc.style.width=w+'px';sc.style.height=h+'px';
   ['tilt','flip'].forEach(i=>{$(i).style.width=w+'px';$(i).style.height=h+'px';});
   ['cardF','cardB'].forEach(i=>{$(i).style.transform=`scale(${CARD_S})`;});$('holo').style.borderRadius=30*CARD_S+'px';
@@ -709,21 +729,31 @@ document.addEventListener('pointerup',()=>{PH.drag=null;});
 document.addEventListener('wheel',e=>{if(!(e.target.closest&&e.target.closest('#phCv'))||!PH.img)return;e.preventDefault();PH.z=Math.max(1,Math.min(4,PH.z*(e.deltaY<0?1.06:1/1.06)));$('f-zoom').value=Math.round(PH.z*100);$('o-zoom').textContent=Math.round(PH.z*100)+'%';drawPhoto();},{passive:false});
 
 /* card save */
+async function captureFace(back,scale,square){
+  try{await document.fonts.ready;}catch(e){}
+  return html2canvas(back?$('cardB'):$('cardF'),{scale,backgroundColor:null,useCORS:true,logging:false,
+    ignoreElements:el=>el.classList&&el.classList.contains('holo')||(location.protocol==='file:'&&el.tagName==='IMG'),
+    onclone:d=>{['tilt','flip'].forEach(i=>{const e=d.getElementById(i);e.style.transform='none';e.style.transition='none';});
+      ['faceF','faceB'].forEach(i=>{const e=d.getElementById(i);e.style.transform='none';e.style.backfaceVisibility='visible';e.style.width='640px';e.style.height='1010px';});
+      const me=d.getElementById(back?'cardB':'cardF');me.style.transform='none';me.style.boxShadow='none';if(square){me.style.borderRadius='0';me.style.background='#fff';me.querySelector('.in').style.borderRadius='0';}d.getElementById(back?'faceF':'faceB').style.display='none';
+      const sc=d.getElementById('scene');sc.style.width='640px';sc.style.height='1010px';
+      if(!back){const p=d.getElementById('phCv'),o=$('phCv');if(p&&o)p.getContext('2d').drawImage(o,0,0);}}});}
 async function saveCard(){
   if(typeof html2canvas==='undefined'){toast('CAPTURE UNAVAILABLE');return;}
-  toast('RENDERING HQ IMAGE');const back=$('flip').classList.contains('back'),tgt=back?$('cardB'):$('cardF');
-  try{await document.fonts.ready;}catch(e){}
+  toast('RENDERING IMAGE');const back=$('flip').classList.contains('back');
+  try{const cv=await captureFace(back,3);download(cv.toDataURL('image/png'),`ARCH_ID_${ID.name||'OPERATOR'}_${back?'BACK':'FRONT'}.png`);flash();toast('ID IMAGE SAVED');}
+  catch(e){console.error(e);toast('CAPTURE FAILED');}}
+async function savePrint(){
+  if(typeof html2canvas==='undefined'){toast('CAPTURE UNAVAILABLE');return;}
+  toast('RENDERING PRINT IMAGE');
   try{
-    const cv=await html2canvas(tgt,{scale:3,backgroundColor:null,useCORS:true,logging:false,
-      ignoreElements:el=>el.classList&&el.classList.contains('holo')||(location.protocol==='file:'&&el.tagName==='IMG'),
-      onclone:d=>{['tilt','flip'].forEach(i=>{const e=d.getElementById(i);e.style.transform='none';e.style.transition='none';});
-        ['faceF','faceB'].forEach(i=>{const e=d.getElementById(i);e.style.transform='none';e.style.backfaceVisibility='visible';e.style.width='640px';e.style.height='1010px';});
-        const c=d.getElementById(back?'cardB':'cardF');c.style.transform='none';d.getElementById(back?'faceF':'faceB').style.display='none';
-        const sc=d.getElementById('scene');sc.style.width='640px';sc.style.height='1010px';
-        if(!back){const p=d.getElementById('phCv'),o=$('phCv');if(p&&o)p.getContext('2d').drawImage(o,0,0);}}});
-    download(cv.toDataURL('image/png'),`ARCH_ID_${(ID.name||'OPERATOR')}_${back?'BACK':'FRONT'}.png`);flash();toast('ID IMAGE SAVED');
-  }catch(e){console.error(e);toast('CAPTURE FAILED');}
-}
+    /* 54 x 85.6 mm @ 600dpi, square corners, front + back side by side */
+    const DPI=600,mm=v=>Math.round(v/25.4*DPI),CW=mm(54),CH=mm(85.6),G=mm(6),sc=CW/640;
+    const f=await captureFace(false,sc,true),b=await captureFace(true,sc,true);
+    const c=document.createElement('canvas');c.width=CW*2+G;c.height=CH;const x=c.getContext('2d');
+    x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(f,0,0,CW,CH);x.drawImage(b,CW+G,0,CW,CH);
+    download(c.toDataURL('image/png'),`ARCH_ID_${ID.name||'OPERATOR'}_PRINT.png`);flash();toast('PRINT IMAGE SAVED');
+  }catch(e){console.error(e);toast('CAPTURE FAILED');}}
 
 /* ═════ MISSION ═════ */
 const MT=[
@@ -749,7 +779,7 @@ function genMission(){
   const ti=$('m-type').value,T=ti==='RANDOM'?pick(MT):MT[+ti];
   MISSION={no:'OP-'+Math.random().toString(36).slice(2,7).toUpperCase(),date:fmtDate(new Date()),name,partner,role,attr,T,obj:pick(T.obj),loc:pick(MLOC),time:pick(MTIME),guide:pick(MGUIDE),twists:[],grid:[Math.random()*6|0,Math.random()*6|0]};
   renderDoss(false);renderOOC();logEv('DISPATCH',`${MISSION.T.c} · ${MISSION.T.n}`);toast('DISPATCH ISSUED');}
-function addTwist(){if(!MISSION){genMission();return;}const left=MTWIST.filter(t=>!MISSION.twists.includes(t));if(!left.length){toast('NO MORE TWISTS');return;}
+function addTwist(){if(!MISSION){genMission();return;}if(MISSION.twists.length>=3){toast('MAX 3 VARIABLES');return;}const left=MTWIST.filter(t=>!MISSION.twists.includes(t));
   MISSION.twists.push(pick(left));renderDoss(true);renderOOC();logEv('TWIST',MISSION.twists.at(-1));toast('VARIABLE ADDED');}
 function renderDoss(tw){const M=MISSION;$('m-empty').classList.add('hidden');
   const cells=[...Array(36)].map((_,i)=>{const x=i%6,y=i/6|0,on=x===M.grid[0]&&y===M.grid[1];return `<rect x="${x*20+1}" y="${y*20+1}" width="18" height="18" fill="${on?'#fff':'none'}" stroke="rgba(255,255,255,${on?1:.15})"/>`;}).join('');
@@ -789,24 +819,50 @@ function showQ(){const Q=QS[TQ];$('t-prog').textContent=`${TQ+1} / ${QS.length}`
   $('testStage').innerHTML=`<div class="qbox"><div class="lbl">Question ${String(TQ+1).padStart(2,'0')} / ${String(QS.length).padStart(2,'0')}</div><div class="qbar">${QS.map((_,i)=>`<i class="${i<=TQ?'on':''}"></i>`).join('')}</div>
     <div class="qtxt">${Q.q}</div>${Q.a.map((a,i)=>`<button class="ans" data-i="${i}"><span>${'ABCD'[i]}</span>${a[0]}</button>`).join('')}</div>`;
   $('testStage').querySelectorAll('.ans').forEach(b=>b.addEventListener('click',()=>{const s=Q.a[+b.dataset.i][1];for(const k in s)TS[k]=(TS[k]||0)+s[k];TQ++;TQ<QS.length?showQ():showRes();}));}
+const STAT_TXT={
+ '파괴':['위기 앞에서 망설이기보다 먼저 부수고 나아가는 쪽을 택합니다. 결단이 빠른 만큼 주변의 시선을 한 몸에 받습니다.','당신의 힘은 언제나 정면을 향합니다. 장애물은 돌아가는 대상이 아니라 넘어서야 할 대상입니다.'],
+ '제어':['감정이 요동칠수록 오히려 차분해지는 타입입니다. 상황을 한 걸음 떨어져 읽어 내는 능력이 뛰어납니다.','힘을 쓰는 것보다 힘을 다스리는 법을 먼저 배운 사람입니다. 하모니가 가장 신뢰하는 유형이기도 합니다.'],
+ '기동':['한곳에 머무르기보다 흐름을 따라 움직이며 기회를 만듭니다. 판단보다 몸이 먼저 반응하는 순간이 많습니다.','속도는 당신의 언어입니다. 남들이 상황을 파악할 때쯤 당신은 이미 다음 수를 두고 있습니다.'],
+ '지구':['오래 버티는 쪽이 결국 이긴다는 것을 알고 있습니다. 최전선에서 가장 늦게 무너지는 사람입니다.','지친 기색을 잘 드러내지 않습니다. 동료들은 당신이 곁에 서 있는 것만으로도 안심합니다.'],
+ '감응':['타인의 작은 변화도 쉽게 알아차립니다. 말보다 표정과 숨소리로 상대를 읽는 데 익숙합니다.','파장의 미세한 떨림까지 감지하는 예민한 감각을 지녔습니다. 그만큼 쉽게 지치기도 합니다.'],
+ '공명':['누군가와 함께일 때 비로소 진짜 힘을 냅니다. 혼자일 때보다 둘일 때 수치가 훨씬 안정적입니다.','당신의 파장은 타인과 맞물리기 위해 만들어진 것처럼 보입니다. 각인 가능성이 높은 유형입니다.']};
+const LOW_TXT={'파괴':'결정적인 순간에 한발 물러서는 경향이 있습니다. 때로는 망설임이 더 큰 피해를 부를 수 있습니다.','제어':'감정이 능력에 그대로 실리는 편입니다. 가이딩 필요 수치가 예상보다 빠르게 오를 수 있으니 주의가 필요합니다.','기동':'익숙한 자리를 벗어나는 것을 꺼립니다. 돌발 상황에서 반응이 한 박자 늦을 수 있습니다.','지구':'짧고 강한 집중에는 능하지만 장기전에서는 쉽게 소진됩니다. 임무 중간의 휴식 주기를 지켜 주십시오.','감응':'타인의 상태 변화를 놓치는 경우가 있습니다. 파트너가 보내는 신호에 의식적으로 귀를 기울이십시오.','공명':'홀로 해결하려는 습관이 강합니다. 파트너에게 기대는 것도 임무의 일부라는 것을 기억하십시오.'};
+const STYLE_TXT={
+ SENTINEL:{'불':'열기와 폭발을 앞세운 정면 돌파형 센티넬입니다. 짧은 시간에 전황을 뒤집는 데 특화되어 있습니다.','물':'수압과 침식으로 상대를 서서히 무너뜨리는 장기전형 센티넬입니다. 넓은 범위를 오래 장악합니다.','풀':'덩굴과 독으로 적을 묶고 지형을 바꾸는 변칙형 센티넬입니다. 생포 작전에서 진가를 발휘합니다.','번개':'인지하는 순간 이미 끝나 있는 초고속 강습형 센티넬입니다. 은밀한 기밀 작전에 자주 투입됩니다.','바람':'하늘을 무대로 정찰과 교란을 오가는 기동형 센티넬입니다. 어떤 작전에도 빠르게 녹아듭니다.','얼음':'모든 것을 멈추게 하는 제압형 센티넬입니다. 방어와 공격 모두에서 흔들림 없는 안정감을 줍니다.','무속성':'원소에 기대지 않고 순수한 신체 능력으로 싸우는 센티넬입니다. 어떤 속성과도 무난하게 합을 맞춥니다.'},
+ GUIDE:{'불':'파트너의 공격에 열기를 더해 화력을 폭발적으로 끌어올리는 가이드입니다. 공세가 필요한 작전에 어울립니다.','물':'정화와 치유에 능한 회복형 가이드입니다. 장기 작전에서 팀 전체의 생존율을 끌어올립니다.','풀':'재생 필드를 펼쳐 아군을 오래 버티게 하는 설계형 가이드입니다. 전장 전체를 넓게 내다봅니다.','번개':'파트너의 반응 속도를 극한까지 끌어올리는 가속형 가이드입니다. 위급 상황에서 가장 빛납니다.','바람':'버프를 넓게 퍼뜨리고 비행 능력을 부여하는 지원형 가이드입니다. 지형의 한계를 지워 줍니다.','얼음':'피해를 흡수하는 보호막을 만드는 수호형 가이드입니다. 최전선 요원들이 가장 의지하는 존재입니다.','무속성':'가장 순수한 방식으로 파장을 안정시키는 가이드입니다. 어떤 센티넬과도 높은 기본 효율을 보입니다.'}};
+const ADJ={'파괴':['거침없는','불타오르는'],'제어':['고요한','흔들림 없는'],'기동':['바람을 닮은','멈추지 않는'],'지구':['꺾이지 않는','끝까지 남는'],'감응':['섬세한','예민한'],'공명':['맞닿은','이어진']};
+const attrLabel=a=>a==='무속성'?'무속성':a+' 속성';
+const NOUN={SENTINEL:{'불':'화염의 선봉','물':'심해의 파수꾼','풀':'숲의 사냥꾼','번개':'섬광의 칼날','바람':'하늘의 정찰자','얼음':'서리의 방패','무속성':'맨손의 전위'},GUIDE:{'불':'불씨의 인도자','물':'물결의 치유자','풀':'초록의 설계자','번개':'번개의 조율자','바람':'바람의 날개','얼음':'겨울의 수호자','무속성':'고요의 닻'}};
+const MISSION_REC={'파괴':'전술 섬멸 작전','제어':'폭주 개체 진압','기동':'구역 탐색 및 정찰','지구':'거점 방어 및 구출','감응':'잠입 및 회수','공명':'공명 정밀 테스트'};
+const HARMONY_NOTE=['초기 적응 기간 동안 주 2회 이상의 정기 가이딩을 권장합니다.','첫 페어링은 싱크로율 70% 이상의 상대로 배정할 것을 권고합니다.','임무 직후 수치 보고를 습관화하도록 지도하십시오.','상극 속성과의 합동 훈련으로 대응 폭을 넓힐 필요가 있습니다.','잠재력에 비해 자기 평가가 낮은 편입니다. 성공 경험을 쌓게 해 주십시오.','능력 사용 후 감정 기복을 기록하게 하십시오. 폭주 예방에 도움이 됩니다.','파트너를 고를 때는 속성보다 성격적 상성을 먼저 고려하십시오.'];
 function showRes(){
   const role=TS.g>TS.s?'GUIDE':'SENTINEL';let attr='무속성',mx=-1;ATTR_KEYS.forEach(k=>{if(TS[k]>mx){mx=TS[k];attr=k;}});
   const mxs=Math.max(...STATS.map(k=>TS[k]),1),vals=STATS.map(k=>.25+.75*TS[k]/mxs);
-  const total=STATS.reduce((a,k)=>a+TS[k],0),rank=total>26?'S':total>20?'A':total>14?'B':'C';
+  const total=STATS.reduce((a,k)=>a+TS[k],0),rank=total>=15?'S':total>=14?'A':total>=13?'B':'C';
+  const order=STATS.map((k,i)=>[k,TS[k]+i*.001]).sort((a,b)=>b[1]-a[1]),top=order[0][0],sec=order[1][0],low=order.at(-1)[0];
+  const h=hash(JSON.stringify(TS)+Date.now());const pk=(a,o=0)=>a[(h>>>o)%a.length];
+  const title=`${pk(ADJ[top])} ${NOUN[role][attr]}`;
   TRES={role,attr,rank,dept:deptFor(role,attr),vals};$('t-prog').textContent='Complete';
   const R=90,cx=105,cy=105,pt=(i,r)=>[cx+Math.sin(i/6*Math.PI*2)*r,cy-Math.cos(i/6*Math.PI*2)*r];
   let grid='';[.33,.66,1].forEach(f=>{grid+=`<polygon points="${[0,1,2,3,4,5].map(i=>pt(i,R*f).join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.14)"/>`;});
   [0,1,2,3,4,5].forEach(i=>{const p=pt(i,R);grid+=`<line x1="${cx}" y1="${cy}" x2="${p[0]}" y2="${p[1]}" stroke="rgba(255,255,255,.1)"/>`;const l=pt(i,R+13);grid+=`<text x="${l[0]}" y="${l[1]+4}" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.55)" font-family="Pretendard Variable,sans-serif">${STATS[i]}</text>`;});
   const poly=vals.map((v,i)=>pt(i,R*v).join(',')).join(' ');
-  const A=ATTR[attr],quote=role==='GUIDE'?`당신은 파트너의 파장을 잠재우는 쪽에 서 있습니다. ${A.s}의 기운을 품은 가이드로서, ${PAIR[attr]} 속성의 센티넬과 가장 높은 공명을 보일 것으로 예측됩니다.`:`당신의 힘은 ${A.s}에 가깝습니다. 폭주의 위험을 함께 짊어질 파트너로는 ${PAIR[attr]} 속성의 가이드가 가장 잘 맞을 것으로 예측됩니다.`;
-  $('testStage').innerHTML=`<div class="rep" id="repCard"><div class="rep-l"><div class="lbl">Harmony Division · Aptitude Report</div><h2>${role}</h2><div class="arch">“${A.title}”</div>
-    <div class="rr"><span class="lbl">Attribute</span><span>${attr} · ${A.en}</span></div>
+  const A=ATTR[attr],en=A.en[0]+A.en.slice(1).toLowerCase(),partner=role==='GUIDE'?'센티넬':'가이드';
+  $('testStage').innerHTML=`<div class="rep" id="repCard"><div class="rep-l"><div class="lbl">Harmony Division · Aptitude Report</div><h2>${role}</h2><div class="arch">“${title}”</div>
+    <div class="rr"><span class="lbl">Attribute</span><span>${attr} (${en})</span></div>
     <div class="rr"><span class="lbl">Est. Rank</span><span>${rank}-CLASS · ${RANKS[rank]}</span></div>
     <div class="rr"><span class="lbl">Division</span><span>${TRES.dept}</span></div>
-    <div class="rr"><span class="lbl">Best Match</span><span>${PAIR[attr]} 속성 ${role==='GUIDE'?'센티넬':'가이드'}</span></div>
-    <p class="quote">${quote}</p></div>
-    <div class="rep-r"><svg viewBox="-10 -10 230 230">${grid}<polygon class="rpoly" points="${poly}" fill="rgba(255,255,255,.14)" stroke="#fff" stroke-width="1.4"/>${vals.map((v,i)=>{const q=pt(i,R*v);return `<circle cx="${q[0]}" cy="${q[1]}" r="2.6" fill="#fff"/>`;}).join('')}</svg><span class="lbl">Ability Profile</span></div></div>`;
-  $('t-apply').classList.remove('hidden');$('t-save').classList.remove('hidden');logEv('APTITUDE',`${role} · ${attr} · ${TRES.dept}`);toast('EVALUATION COMPLETE');}
+    <div class="rr"><span class="lbl">Best Match</span><span>${attrLabel(PAIR[attr])} ${partner}</span></div>
+    <div class="rr"><span class="lbl">First Mission</span><span>${MISSION_REC[top]}</span></div></div>
+    <div class="rep-r"><svg viewBox="-10 -10 230 230">${grid}<polygon class="rpoly" points="${poly}" fill="rgba(255,255,255,.14)" stroke="#fff" stroke-width="1.4"/>${vals.map((v,i)=>{const q=pt(i,R*v);return `<circle cx="${q[0]}" cy="${q[1]}" r="2.6" fill="#fff"/>`;}).join('')}</svg><span class="lbl">Ability Profile · ${top} / ${sec}</span></div>
+    <div class="rep-x">
+      <div><div class="lbl">Personality</div><p>${pk(STAT_TXT[top])} ${pk(STAT_TXT[sec],3)}</p></div>
+      <div><div class="lbl">Style</div><p>${STYLE_TXT[role][attr]}</p></div>
+      <div><div class="lbl">Caution</div><p>${LOW_TXT[low]}</p></div>
+      <div><div class="lbl">Harmony Note</div><p>${pk(HARMONY_NOTE,5)} 파트너로는 ${attrLabel(PAIR[attr])}의 ${partner}가 가장 높은 공명을 보일 것으로 예측됩니다.</p></div>
+    </div></div>`;
+  $('t-apply').classList.remove('hidden');$('t-save').classList.remove('hidden');logEv('APTITUDE',`${role} · ${attr} · ${rank}-CLASS`);toast('EVALUATION COMPLETE');
+  if(LAYOUT()==='m')setTimeout(()=>$('repCard').scrollIntoView({behavior:'smooth',block:'start'}),200);}
 function applyTest(){if(!TRES)return;setSeg('seg-role',TRES.role);setAttr(TRES.attr);$('f-rank').value=TRES.rank;setTab('card');issueID();}
 async function saveReport(){const el=$('repCard');if(!el)return;await capEl(el,'ARCH_APTITUDE_REPORT.png','#070707');}
 async function capEl(el,name,bg){if(typeof html2canvas==='undefined'){toast('CAPTURE UNAVAILABLE');return;}
@@ -881,7 +937,7 @@ setInterval(()=>{$('clock').textContent=now();},1000);
 window.addEventListener('resize',()=>{fitCard();resizeBg();resizeSync();moveInk();moveKnobs();});
 document.addEventListener('keydown',e=>{const typing=/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);if(typing)return;
   if(e.key==='f'||e.key==='F'){if(TAB==='card')flipCard();}else if(e.key==='Escape'){document.activeElement.blur();}});
-window.addEventListener('load',()=>{
+function init(){
   $('chips-attr').innerHTML=ATTR_KEYS.map(k=>`<button data-v="${k}">${k}</button>`).join('');
   $('chips-attr').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{setAttr(b.dataset.v);refreshCard();}));
   $('chips-wave').innerHTML=ATTR_KEYS.map(k=>`<button data-v="${k}" class="${k==='무속성'?'on':''}">${k}</button>`).join('');
@@ -892,7 +948,9 @@ window.addEventListener('load',()=>{
   newTarget();updSyncLabels();resizeBg();moveKnobs();
   $('clock').textContent=now();runBoot();requestAnimationFrame(loop);
   setTimeout(fitCard,50);
-});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+window.addEventListener('load',()=>{fitCard();resizeBg();});
 </script>
 </body>
 </html>
