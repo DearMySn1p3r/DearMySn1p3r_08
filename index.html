@@ -115,7 +115,9 @@ body:not(.ready) #scene{opacity:0;visibility:hidden}
 .fld input[type=text],.fld select{width:100%;border-bottom:1px solid var(--hl2);padding:8px 0;font-size:13px;-webkit-appearance:none;appearance:none;border-radius:0;transition:border-color .2s}
 .fld input:focus,.fld select:focus{border-color:#fff}
 .fld input::placeholder{color:var(--t4)}
-.fld select{background-image:linear-gradient(45deg,transparent 50%,#fff 50%),linear-gradient(135deg,#fff 50%,transparent 50%);background-position:calc(100% - 9px) 55%,calc(100% - 4px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:24px}
+.fld select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23fff' stroke-width='1.2'/%3E%3C/svg%3E");background-position:calc(100% - 4px) 50%;background-size:10px 6px;background-repeat:no-repeat;padding-right:24px}
+.wid-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--hl2);padding:8px 0}
+.wid-row span{font:500 13px var(--mono);letter-spacing:.08em}
 .fld select option{background:#0a0a0a;color:#fff}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .seg{display:flex;border:1px solid var(--hl2);position:relative}
@@ -409,7 +411,7 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
     <div class="st"><span class="lbl">Division</span><b>HARMONY</b></div>
     <div class="st"><span class="lbl">Link</span><b>ENCRYPTED</b></div>
   </div>
-  <div class="hr"><span id="clock">00:00:00</span><span class="lbl">KST</span><button class="tbtn" onclick="saveCurrent()"><i></i>REC</button></div>
+  <div class="hr"><span id="clock">00:00:00</span><span class="lbl">KST</span><button class="tbtn" onclick="captureScreen()"><i></i>REC</button></div>
 </header>
 
 <div id="main">
@@ -484,6 +486,7 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
           <select id="f-rank"><option value="SS">SS · 군주 · 아크 프리마</option><option value="S">S · 뱅가드</option><option value="A" selected>A · 에이전트</option><option value="B">B · 에이전트</option><option value="C">C · 애콜라이트</option></select>
         </div>
         <div class="fld"><span class="lbl">Attribute</span><div class="chips" id="chips-attr"></div></div>
+        <div class="fld"><span class="lbl">Sync Wave ID</span><div class="wid-row"><span id="f-wid">----</span><button class="tl" onclick="rollWave()">Reroll ↻</button></div></div>
       </div>
       <div class="btns">
         <button class="btn pri" onclick="issueID()">사원증 발급</button>
@@ -507,6 +510,7 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
       <div class="btns">
         <button class="btn pri" onclick="genMission()">작전 요청</button>
         <div class="btns c2"><button class="btn sm" onclick="addTwist()">변수 추가</button><button class="btn sm" onclick="copyOOC()">OOC 복사</button></div>
+        <button class="btn sm" style="margin-top:8px" onclick="saveDoss()">지령서 저장</button>
       </div>
       <div class="sec" style="margin-top:22px">
         <div class="sec-h"><span class="lbl">OOC Output</span></div>
@@ -649,7 +653,9 @@ function moveKnobs(){document.querySelectorAll('.seg').forEach(s=>{const b=s.que
 /* ═════ ID CARD ═════ */
 const ID={name:'',code:'',role:'SENTINEL',rank:'A',attr:'무속성',dept:'전술 관제 센터',no:'',issued:'',wave:0,sig:null};
 const PH={img:null,z:1,x:0,y:0};
-function cardIdNo(){const h=hash(ID.name+ID.role+ID.rank+ID.attr+ID.issued);const x=n=>((h>>>n)&0xffff).toString(16).toUpperCase().padStart(4,'0');return `${x(0)}-${x(8)}-${x(16)}`;}
+function newWaveNo(){const H='0123456789ABCDEF',g=()=>Array.from({length:4},()=>H[Math.random()*16|0]).join('');return `${g()}-${g()}-${g()}`;}
+function cardIdNo(){if(!ID.no)ID.no=newWaveNo();const w=document.getElementById('f-wid');if(w)w.textContent=ID.no;return ID.no;}
+function rollWave(){ID.no=newWaveNo();cardIdNo();buildCards();fitCard();const w=$('f-wid');w.animate([{opacity:.2},{opacity:1}],{duration:400});logEv('WAVE',`새 파장 식별 번호 ${ID.no}`);toast('WAVE ID REROLLED');}
 function fmtDate(d){return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;}
 function barcodeSVG(str,h=56,col='#000',W=200){const r=prng(hash(str)+7);let x=0,b='';for(let i=0;i<54;i++){const w=1+Math.floor(r()*3.2);if(i%2===0)b+=`<rect x="${x}" y="0" width="${w*1.6}" height="${h}" fill="${col}"/>`;x+=w*1.6+ (i%2?0:0);}
   return `<svg viewBox="0 0 ${x} ${h}" width="${x}" height="${h}" preserveAspectRatio="none">${b}</svg>`;}
@@ -692,7 +698,7 @@ function issueID(){readForm();ID.issued=fmtDate(new Date());ID.no=cardIdNo();bui
 function randomID(){$('f-name').value=pick(NAMES);$('f-code').value=pick(CODES_EN)+'-'+String(Math.random()*99|0).padStart(2,'0');
   const role=Math.random()<.5?'SENTINEL':'GUIDE';setSeg('seg-role',role);const attr=pick(ATTR_KEYS);setAttr(attr);
   let rank;if(role==='GUIDE')rank=attr!=='무속성'?'S':pick(['A','B','C']);else{const v=Math.random();rank=v<.03?'SS':v<.15?'S':v<.45?'A':v<.8?'B':'C';}
-  $('f-rank').value=rank;issueID();}
+  $('f-rank').value=rank;ID.no=newWaveNo();issueID();}
 function setAttr(k){ID.attr=k;document.querySelectorAll('#chips-attr button').forEach(b=>b.classList.toggle('on',b.dataset.v===k));}
 function flipCard(){$('flip').classList.toggle('back');}
 
@@ -737,7 +743,7 @@ async function captureFace(back,scale,square){
     ignoreElements:el=>el.classList&&el.classList.contains('holo')||(location.protocol==='file:'&&el.tagName==='IMG'),
     onclone:d=>{['tilt','flip'].forEach(i=>{const e=d.getElementById(i);e.style.transform='none';e.style.transition='none';});
       ['faceF','faceB'].forEach(i=>{const e=d.getElementById(i);e.style.transform='none';e.style.backfaceVisibility='visible';e.style.width='640px';e.style.height='1010px';});
-      const me=d.getElementById(back?'cardB':'cardF');me.style.transform='none';me.style.boxShadow='none';if(square){me.style.borderRadius='0';me.style.background='#fff';me.querySelector('.in').style.borderRadius='0';}d.getElementById(back?'faceF':'faceB').style.display='none';
+      const me=d.getElementById(back?'cardB':'cardF');me.style.transform='none';me.style.boxShadow='none';if(square){me.style.borderRadius='0';me.style.background='#fff';me.style.padding='0';me.querySelector('.in').style.borderRadius='0';}d.getElementById(back?'faceF':'faceB').style.display='none';
       const sc=d.getElementById('scene');sc.style.width='640px';sc.style.height='1010px';
       if(!back){const p=d.getElementById('phCv'),o=$('phCv');if(p&&o)p.getContext('2d').drawImage(o,0,0);}}});}
 async function saveCard(){
@@ -749,12 +755,14 @@ async function savePrint(){
   if(typeof html2canvas==='undefined'){toast('CAPTURE UNAVAILABLE');return;}
   toast('RENDERING PRINT IMAGE');
   try{
-    /* 54 x 85.6 mm @ 600dpi, square corners, front + back side by side */
-    const DPI=600,mm=v=>Math.round(v/25.4*DPI),CW=mm(54),CH=mm(85.6),G=mm(6),sc=CW/640;
-    const f=await captureFace(false,sc,true),b=await captureFace(true,sc,true);
-    const c=document.createElement('canvas');c.width=CW*2+G;c.height=CH;const x=c.getContext('2d');
-    x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(f,0,0,CW,CH);x.drawImage(b,CW+G,0,CW,CH);
-    download(c.toDataURL('image/png'),`ARCH_ID_${ID.name||'OPERATOR'}_PRINT.png`);flash();toast('PRINT IMAGE SAVED');
+    /* 54 x 85.6 mm @ 600dpi, square corners, full-bleed accent bar — front and back as separate files */
+    const DPI=600,mm=v=>Math.round(v/25.4*DPI),CW=mm(54),CH=mm(85.6),sc=CW/640,nm=ID.name||'OPERATOR';
+    const out=cv=>{const c=document.createElement('canvas');c.width=CW;c.height=CH;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,CW,CH);x.drawImage(cv,0,0,CW,CH);x.fillStyle=ACC[ID.attr];x.fillRect(0,0,CW,Math.round(5*sc));return c.toDataURL('image/png');};
+    const f=out(await captureFace(false,sc,true)),b=out(await captureFace(true,sc,true));
+    download(f,`ARCH_ID_${nm}_PRINT_FRONT.png`);
+    await new Promise(r=>setTimeout(r,450));
+    download(b,`ARCH_ID_${nm}_PRINT_BACK.png`);
+    flash();toast('PRINT FRONT + BACK SAVED');
   }catch(e){console.error(e);toast('CAPTURE FAILED');}}
 
 /* ═════ MISSION ═════ */
@@ -932,6 +940,36 @@ stage.addEventListener('mouseleave',()=>{M.x=M.y=-999;});
 /* ═════ REC (save current) ═════ */
 function saveCurrent(){if(TAB==='card')saveCard();else if(TAB==='mission'){if(!MISSION){toast('NO DISPATCH');return;}capEl($('dossCard'),`ARCH_${MISSION.no}.png`,'#070707');}
   else if(TAB==='test'){if(!TRES){toast('NO REPORT');return;}saveReport();}else if(TAB==='sync')saveWave();else toast('NOTHING TO SAVE');}
+
+function saveDoss(){if(!MISSION){toast('NO DISPATCH');return;}capEl($('dossCard'),`ARCH_${MISSION.no}.png`,'#070707');}
+/* full-screen capture: site as seen, with moving parts settled */
+let CAPTURING=false;
+function captureScreen(){
+  if(CAPTURING)return;if(typeof html2canvas==='undefined'){toast('CAPTURE UNAVAILABLE');return;}
+  CAPTURING=true;toast('CAPTURING SCREEN');
+  const back=$('flip').classList.contains('back'),src=[...document.querySelectorAll('canvas')];
+  const skip=el=>['cursor','cur-dot','toast','flash','boot','holo'].includes(el.id)||(location.protocol==='file:'&&el.tagName==='IMG');
+  setTimeout(()=>{
+    html2canvas(document.body,{backgroundColor:'#000',useCORS:true,logging:false,scale:Math.max(2,devicePixelRatio||1),
+      width:innerWidth,height:innerHeight,windowWidth:innerWidth,windowHeight:innerHeight,x:0,y:0,scrollX:0,scrollY:0,ignoreElements:skip,
+      onclone:d=>{
+        /* copy live canvas pixels */
+        const dc=[...d.querySelectorAll('canvas')];src.forEach((c,i)=>{const t=dc[i];if(t&&c.width&&c.height){t.width=c.width;t.height=c.height;t.getContext('2d').drawImage(c,0,0);}});
+        /* flatten the 3D card to its visible face */
+        ['tilt','flip'].forEach(i=>{const e=d.getElementById(i);if(e){e.style.transform='none';e.style.transition='none';e.style.transformStyle='flat';}});
+        const fF=d.getElementById('faceF'),fB=d.getElementById('faceB');
+        if(fF&&fB){[fF,fB].forEach(e=>{e.style.transform='none';e.style.backfaceVisibility='visible';});(back?fF:fB).style.display='none';}
+        {const e=d.getElementById('evlog');if(e)e.style.visibility='hidden';}
+        d.querySelectorAll('input').forEach(i=>{if(!i.value)i.style.color='rgba(255,255,255,.25)';});
+        {const t=d.getElementById('st-t');if(t)t.textContent=TABINFO[TAB][1];}
+        const m=d.getElementById('main');const lm=$('main');if(m&&lm){m.scrollTop=lm.scrollTop;}
+        ['v-mission','v-test'].forEach(i=>{const a=$(i),b=d.getElementById(i);if(a&&b)b.scrollTop=a.scrollTop;});
+      }})
+    .then(c=>{download(c.toDataURL('image/png'),`ARCH_CAPTURE_${new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)}.png`);flash();toast('CAPTURE SAVED');})
+    .catch(e=>{console.error(e);toast('CAPTURE FAILED');})
+    .finally(()=>{CAPTURING=false;});
+  },350);
+}
 
 /* ═════ INIT ═════ */
 function loop(){tickCursor();drawBg();drawSync();requestAnimationFrame(loop);}
