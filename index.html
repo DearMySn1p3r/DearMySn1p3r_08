@@ -87,7 +87,9 @@ body:not(.ready) #scene{opacity:0;visibility:hidden}
 .view{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:2}
 .view.on{display:flex;animation:fadeIn .5s var(--ease)}
 #v-mission,#v-test{overflow-y:auto;padding:150px 20px 40px}
-#v-mission>*,#v-test>*{margin:auto 0}
+#v-mission,#v-test{flex-direction:column;justify-content:flex-start}
+#v-mission>*,#v-test>*{margin:auto 0;flex-shrink:0}
+#doss:empty{display:none}
 @keyframes fadeIn{from{opacity:0}}
 .st-bot{position:absolute;left:32px;right:32px;bottom:22px;display:flex;align-items:flex-end;gap:24px;pointer-events:none;z-index:3}
 #evlog{display:flex;flex-direction:column-reverse;gap:6px;flex:1;min-width:0}
@@ -218,7 +220,7 @@ body:not(.ready) #scene{opacity:0;visibility:hidden}
 .stamp{position:absolute;right:22px;bottom:18px;border:2px solid rgba(255,255,255,.75);color:rgba(255,255,255,.8);font:700 13px var(--disp);letter-spacing:.3em;padding:6px 10px 6px 14px;transform:rotate(-8deg);animation:stamp .5s var(--ease) .3s both}
 @keyframes stamp{from{transform:rotate(-8deg) scale(1.6);opacity:0}}
 #testStage,#doss{width:100%;display:flex;justify-content:center}
-.empty-v{text-align:center;color:var(--t3)}
+.empty-v{text-align:center;color:var(--t3);display:flex;flex-direction:column;align-items:center;word-break:keep-all}
 .empty-v svg{width:70px;height:70px;opacity:.4;margin-bottom:16px}
 .empty-v p{font-size:13px;margin-top:8px}
 
