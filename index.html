@@ -955,6 +955,10 @@ function captureScreen(){
       onclone:d=>{
         /* copy live canvas pixels */
         const dc=[...d.querySelectorAll('canvas')];src.forEach((c,i)=>{const t=dc[i];if(t&&c.width&&c.height){t.width=c.width;t.height=c.height;t.getContext('2d').drawImage(c,0,0);}});
+        /* freeze animations so faded-in views (fadeIn/rise) render at full opacity */
+        d.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none';});
+        ['scene','v-card'].forEach(i=>{const e=d.getElementById(i);if(e){e.style.opacity='1';e.style.visibility='visible';}});
+        ['cardF','cardB'].forEach(i=>{const e=d.getElementById(i);if(e)e.style.boxShadow='none';});
         /* flatten the 3D card to its visible face */
         ['tilt','flip'].forEach(i=>{const e=d.getElementById(i);if(e){e.style.transform='none';e.style.transition='none';e.style.transformStyle='flat';}});
         const fF=d.getElementById('faceF'),fB=d.getElementById('faceB');
