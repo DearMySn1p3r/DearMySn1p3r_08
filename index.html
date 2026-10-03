@@ -129,6 +129,9 @@ body:not(.ready) #scene{opacity:0;visibility:hidden}
 .range input::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;background:#fff;border:none}
 .range input::-moz-range-thumb{width:11px;height:11px;background:#fff;border:none;border-radius:0}
 .range output{font:400 10px var(--mono);color:var(--t2);min-width:42px;text-align:right}
+#p-sync .fld .lbl::after{content:'';margin-left:8px;color:#fff;letter-spacing:.18em}
+#p-sync .fld.ok .lbl::after{content:'· LOCK'}
+#p-sync .fld.ok output{color:#fff}
 .drop{display:flex;align-items:center;justify-content:center;gap:10px;border:1px dashed var(--hl2);padding:14px;font-size:12px;color:var(--t2);transition:.2s}
 .drop:hover,.drop.over{border-color:#fff;color:#fff}
 .hint{font-size:11px;color:var(--t3);margin-top:6px;line-height:1.6}
@@ -535,7 +538,7 @@ body.ready #side{transition:opacity .9s var(--ease) .25s,transform .9s var(--eas
     <div class="pane" id="p-sync">
       <div class="sec">
         <div class="sec-h"><span class="lbl">Resonance Tuning</span><button class="tl" onclick="newTarget()">New Target ↻</button></div>
-        <p style="font-size:12.5px;line-height:1.75;color:var(--t2);word-break:keep-all;margin-bottom:14px">점선은 파트너의 파장이에요. 세 개의 다이얼로 내 파장을 겹쳐 보세요. 싱크로율 91% 이상을 유지하면 각인이 일어납니다.</p>
+        <p style="font-size:12.5px;line-height:1.75;color:var(--t2);word-break:keep-all;margin-bottom:14px">점선은 파트너의 파장이에요. 세 개의 다이얼로 내 파장을 겹쳐 보세요. 값이 맞으면 다이얼 이름 옆에 LOCK이 켜지고, 싱크로율 91% 이상을 잠깐 유지하면 각인이 일어납니다.</p>
         <div class="row2">
           <div class="fld"><span class="lbl">You</span><input type="text" id="s-n1" placeholder="센티넬"></div>
           <div class="fld"><span class="lbl">Partner</span><input type="text" id="s-n2" placeholder="가이드"></div>
@@ -897,7 +900,8 @@ function newTarget(){SY.tf=rnd(.9,3.6);SY.tp=rnd(0,Math.PI*2);SY.ta=rnd(.3,.95);
 function syncCalc(){const f=$('s-f').value/100,p=$('s-p').value/100,a=$('s-a').value/100;
   let dp=Math.abs(((p-SY.tp)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI);
   const ef=Math.abs(f-SY.tf)/SY.tf,ea=Math.abs(a-SY.ta);
-  return Math.max(0,100*Math.exp(-(ef*ef*28+dp*dp*.55+ea*ea*9)));}
+  SY.ok=[ef<.08,dp<.5,ea<.1];
+  return Math.max(0,100*Math.exp(-(ef*ef*9+dp*dp*.26+ea*ea*3.6)));}
 function grade(v){return v<50?'배정 불가':v<71?'표준':v<91?'엘리트 조합':'전설 · 각인 임박';}
 function drawSync(){if(TAB!=='sync'||!SY.W)return;const c=syx,W=SY.W,H=SY.H,cy=H*(LAYOUT()==='m'?.56:.55),A=H*.2;SY.t+=.016;
   c.clearRect(0,0,W,H);
@@ -907,9 +911,10 @@ function drawSync(){if(TAB!=='sync'||!SY.W)return;const c=syx,W=SY.W,H=SY.H,cy=H
   const path=(fr,ph,am,shape)=>{c.beginPath();for(let x=0;x<=W;x+=3){const u=x/W,env=Math.sin(u*Math.PI);const y=cy-shape(u*Math.PI*2*fr*2+ph+SY.t*2)*A*am*env;x?c.lineTo(x,y):c.moveTo(x,y);}c.stroke();};
   c.setLineDash([5,6]);c.lineWidth=1.2;c.strokeStyle='rgba(255,255,255,.45)';path(SY.tf,SY.tp,SY.ta,SHAPES['무속성']);c.setLineDash([]);
   const v=syncCalc();SY.sync+=(v-SY.sync)*.1;
+  ['s-f','s-p','s-a'].forEach((id,i)=>{const f=$(id).closest('.fld');if(f)f.classList.toggle('ok',!!(SY.ok&&SY.ok[i]));});
   c.lineWidth=2;c.strokeStyle='#fff';c.shadowColor='#fff';c.shadowBlur=SY.sync>85?12:4;path(f,p,a,fn);c.shadowBlur=0;
   const s=Math.round(SY.sync);$('sy-num').innerHTML=`${s}<small>%</small>`;$('sy-side').innerHTML=`${s}<small>%</small>`;$('sy-gr').textContent=grade(s);
-  if(s>=91&&!SY.imprinted){SY.hold+=1/60;if(SY.hold>1.5){SY.imprinted=true;const im=$('imprint');im.classList.remove('go');void im.offsetWidth;im.classList.add('go');flash();
+  if(s>=91&&!SY.imprinted){SY.hold+=1/60;if(SY.hold>.9){SY.imprinted=true;const im=$('imprint');im.classList.remove('go');void im.offsetWidth;im.classList.add('go');flash();
       const n1=$('s-n1').value.trim()||'SENTINEL',n2=$('s-n2').value.trim()||'GUIDE';logEv('IMPRINT',`${n1} ⇄ ${n2} · 각인 발생`);toast('IMPRINT CONFIRMED');}}
   else if(s<91)SY.hold=0;}
 function updSyncLabels(){$('o-f').textContent=($('s-f').value/100).toFixed(2)+' Hz';$('o-p').textContent=Math.round($('s-p').value/628*360)+'°';$('o-a').textContent=$('s-a').value+'%';
@@ -955,10 +960,6 @@ function captureScreen(){
       onclone:d=>{
         /* copy live canvas pixels */
         const dc=[...d.querySelectorAll('canvas')];src.forEach((c,i)=>{const t=dc[i];if(t&&c.width&&c.height){t.width=c.width;t.height=c.height;t.getContext('2d').drawImage(c,0,0);}});
-        /* freeze animations so faded-in views (fadeIn/rise) render at full opacity */
-        d.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none';});
-        ['scene','v-card'].forEach(i=>{const e=d.getElementById(i);if(e){e.style.opacity='1';e.style.visibility='visible';}});
-        ['cardF','cardB'].forEach(i=>{const e=d.getElementById(i);if(e)e.style.boxShadow='none';});
         /* flatten the 3D card to its visible face */
         ['tilt','flip'].forEach(i=>{const e=d.getElementById(i);if(e){e.style.transform='none';e.style.transition='none';e.style.transformStyle='flat';}});
         const fF=d.getElementById('faceF'),fB=d.getElementById('faceB');
